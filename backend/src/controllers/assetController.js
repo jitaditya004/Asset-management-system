@@ -1,6 +1,7 @@
 // internal modules
 const assetModel = require("../models/assetModel");
-const { supabase } = require("../config/supabaseClient");
+
+
 
 async function uploadFile(file, asset_id, public_id) {
   const bucket = file.mimetype.startsWith("image/")
@@ -29,9 +30,6 @@ async function uploadFile(file, asset_id, public_id) {
 }
 
 exports.create = async (req, res, next) => {
-  console.log("REQ BODY:", req.body);
-  console.log("REQ FILES:", Object.keys(req.files || {}));
-
   try {
     // Destructure assigned_to and description as optional (default to null if not provided)
     const {
@@ -246,73 +244,261 @@ exports.remove = async (req, res, next) => {
   }
 };
 
-exports.deleteAssetFile = async (req, res, next) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//req.user to res.locals.user later
+const db=require("../config/db");  //remove it later
+const canUploadAsset=require("../helper/canUpload");
+const supabase=require("../config/supabaseClient");
+exports.uploadDocs=async(req,res)=>{  //make it model later
   try {
-    const { fileId } = req.params;
+      const public_Id = req.params.id;
+      const file = req.file;
 
-    const file = await assetModel.getFilesByFileId(fileId);
-    if (!file) {
-      return res.status(404).json({ error: "File not found" });
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // 1️⃣ Fetch asset department
+      const assetRes = await db.query(
+        `SELECT department_id,asset_id
+         FROM assets
+         WHERE public_id = $1`,
+        [public_Id]
+      );
+
+      if (assetRes.rowCount === 0) {
+        return res.status(404).json({ message: "Asset not found" });
+      }
+
+      const assetId=assetRes.rows[0].asset_id; 
+
+      const assetDeptId = assetRes.rows[0].department_id;
+
+      // 2️⃣ Authorization check
+      if (!canUploadAsset(req.user, assetDeptId)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      // 3️⃣ Upload to Supabase Storage
+      const storagePath = `assets/${public_Id}/${Date.now()}-${file.originalname}`;
+
+      const { error } = await supabase.storage
+        .from("asset-attachments")
+        .upload(storagePath, file.buffer, {
+          contentType: file.mimetype
+        });
+
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Upload failed" });
+      }
+
+      // 4️⃣ Save metadata in DB
+      await db.query(
+        `INSERT INTO asset_documents
+         (asset_id, document_type, file_path,original_name, uploaded_by)
+         VALUES ($1, $2, $3, $4,$5)`,
+        [
+          assetId,
+          file.mimetype,
+          storagePath,
+          file.originalname,
+          req.user.user_id
+        ]
+      );
+
+      // 5️⃣ Audit log (VERY GOOD FOR INTERVIEWS)
+      await db.query(
+        `INSERT INTO audit_log
+         (actor_id, action, target_type, target_id)
+         VALUES ($1, $2, $3, $4)`,
+        [
+          req.user.user_id,
+          "UPLOAD_ASSET_DOCUMENT",
+          "ASSET",
+          assetId
+        ]
+      );
+
+      res.json({ message: "File uploaded successfully" });
+    }catch(err){
+      console.error(err);
+      res.status(500).json({message:"server error"});
     }
+}
 
-    const { error } = await supabase.storage
-      .from(file.bucket)
-      .remove([file.file_path]);
 
-    if (error) throw error;
+//retrieve attachments details
+//attachments not loading
+exports.listDocs = async (req, res) => {
+  try{
+  const publicId = req.params.id;
 
-    await assetModel.deleteAssetFileMeta(fileId);
+  
+  const asset = await assetModel.getAssetById(publicId);
 
-    res.json({ message: "File deleted successfully" });
-  } catch (err) {
-    next(err);
+  if (!asset) {
+    return res.status(404).json({ message: "Asset not found" });
+  }
+
+  const assetId = asset.asset_id;
+
+  const result = await db.query(
+    `SELECT *
+     FROM asset_documents
+     WHERE asset_id = $1
+     ORDER BY uploaded_at DESC`,
+    [assetId]
+  );
+
+  res.json(result.rows);
+
+
+  }catch(err){
+    console.log(err);  
   }
 };
 
-exports.downloadAssetFile = async (req, res, next) => {
+
+exports.getDocUrl = async (req, res) => {
+  const docId = req.params.id;
+
+  const result = await db.query(
+    `SELECT file_path FROM asset_documents WHERE document_id = $1`,
+    [docId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: "Not found" });
+  }
+
+  const { data, error } = await supabase.storage
+    .from("asset-attachments")
+    .createSignedUrl(result.rows[0].file_path, 300);
+
+  if (error) throw error;
+
+  res.json({ url: data.signedUrl });  
+};
+
+
+exports.deleteDoc = async (req, res) => {
+  try {
+    const docId = req.params.id;
+
+    // 1️⃣ Get attachment metadata
+    const result = await db.query(
+      `SELECT file_path, uploaded_by
+       FROM asset_documents
+       WHERE document_id = $1`,
+      [docId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Attachment not found" });
+    }
+
+    const { file_path, uploaded_by } = result.rows[0];
+
+    // 2️⃣ Permission check
+    if (
+      req.user.role !== "ADMIN" &&
+      req.user.user_id !== uploaded_by
+    ) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // 3️⃣ Delete from Supabase
+    const { error } = await supabase.storage
+      .from("asset-attachments")
+      .remove([file_path]);
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Storage delete failed" });
+    }
+
+    // 4️⃣ Delete DB record
+    await db.query(
+      `DELETE FROM asset_documents WHERE document_id = $1`,
+      [docId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("deleteDoc error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+// controllers/assetController.js
+
+exports.downloadAssetDocs = async (req, res) => {
   try {
     const { fileId } = req.params;
-    const userRole = req.user.role.toUpperCase();
 
-    // Get file metadata by fileId
-    const file = await assetModel.getFilesByFileId(fileId);
-    if (!file) {
-      return res.status(404).json({ error: "File not found" });
+    // 1️⃣ Get file metadata from DB
+    const result = await db.query(
+      `SELECT file_path, original_name, document_type
+       FROM asset_documents
+       WHERE document_id = $1`,
+      [fileId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "File not found" });
     }
 
-    // Role-based access control for file downloads
-    // ADMIN: Can download any file
-    // ASSET_MANAGER / USER: Can download files from assets in their department OR unassigned assets
-    if (userRole !== "ADMIN") {
-      const assetDepartmentId = await assetModel.getAssetDepartmentId(file.asset_id);
-      if (assetDepartmentId !== null && assetDepartmentId !== req.user.department_id) {
-        return res.status(403).json({
-          error: "Access denied: Cannot download files from assets outside your department",
-        });
-      }
-    }
+    const { file_path, original_name, document_type } = result.rows[0];
 
-    // Retrieve the file from Supabase storage
     const { data, error } = await supabase.storage
-      .from(file.bucket)
-      .download(file.file_path);
+      .from("asset-attachments")
+      .download(file_path);
 
     if (error || !data) {
-      return res.status(500).json({ error: "Failed to download file." });
+      console.error(error);
+      return res.status(500).json({ message: "Failed to download file" });
     }
 
-    // Set headers for download
-    res.setHeader("Content-Disposition", `attachment; filename="${file.original_name}"`);
-    res.setHeader("Content-Type", file.mime_type);
+    
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${original_name}"`
+    );
+    res.setHeader("Content-Type", document_type);
 
-    // Pipe the readable stream or buffer to the response
-    if (typeof data.pipe === 'function') {
+    // 4️⃣ Send file bytes
+    if (typeof data.pipe === "function") {
+      // stream (best case)
       data.pipe(res);
     } else {
-      // If Supabase returns a Blob or Buffer
-      res.end(Buffer.from(await data.arrayBuffer()));
+      // blob / buffer fallback
+      const buffer = Buffer.from(await data.arrayBuffer());
+      res.send(buffer);
     }
+
   } catch (err) {
-    next(err);
+    console.error("downloadAssetFile error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

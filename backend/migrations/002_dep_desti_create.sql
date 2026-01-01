@@ -122,3 +122,50 @@ add column long double precision;
 
 alter table assets 
 add column department_id int
+
+alter table asset_documents
+add column original_name text;
+
+
+
+CREATE TYPE asset_status AS ENUM (
+  'REQUESTED',
+  'ACTIVE',
+  'IN_REPAIR',
+  'RETIRED'
+);
+
+ALTER TABLE assets
+ADD COLUMN status asset_status NOT NULL DEFAULT 'REQUESTED'; --status not always active when created
+
+
+ALTER TABLE assets
+ALTER COLUMN status SET DEFAULT 'ACTIVE';
+
+CREATE TABLE asset_status_history (
+  history_id SERIAL PRIMARY KEY,
+
+  asset_id INT NOT NULL
+    REFERENCES assets(asset_id)
+    ON DELETE CASCADE,
+
+  old_status VARCHAR(50) NOT NULL,
+  new_status VARCHAR(50) NOT NULL,
+
+  reason TEXT,
+
+  changed_by INT
+    REFERENCES users(user_id),
+
+  changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+
+
+CREATE INDEX idx_asset_status_history_asset
+ON asset_status_history(asset_id);
+
+CREATE INDEX idx_asset_status_history_changed_at
+ON asset_status_history(changed_at);

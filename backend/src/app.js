@@ -12,18 +12,19 @@ const categoryRoutes = require("./routes/categoryRouter");
 const subcategoryRoutes = require("./routes/subcategoryRouter");
 const departmentRoutes = require("./routes/departmentRouter");
 const designationRoutes = require("./routes/designationRouter");
-const vendorRoutes= require("./routes/vendorRouter")
+const vendorRoutes= require("./routes/vendorRouter");
+const historyRouter= require("./routes/historyRouter");
 
 const app = express();
 
-console.log("authRoutes:", typeof authRoutes);
-console.log("assetRoutes:", typeof assetRoutes);
-console.log("userRoutes:", typeof userRoutes);
-console.log("categoryRoutes:", typeof categoryRoutes);
-console.log("subcategoryRoutes:", typeof subcategoryRoutes);
-console.log("departmentRoutes:", typeof departmentRoutes);
-console.log("designationRoutes:", typeof designationRoutes);
-console.log("errorHandler:", typeof errorHandler);
+// console.log("authRoutes:", typeof historyRouter);
+// console.log("assetRoutes:", typeof assetRoutes);
+// console.log("userRoutes:", typeof userRoutes);
+// console.log("categoryRoutes:", typeof categoryRoutes);
+// console.log("subcategoryRoutes:", typeof subcategoryRoutes);
+// console.log("departmentRoutes:", typeof departmentRoutes);
+// console.log("designationRoutes:", typeof designationRoutes);
+// console.log("errorHandler:", typeof errorHandler);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -42,6 +43,7 @@ app.use("/api/subcategories", subcategoryRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/designations", designationRoutes);
 app.use("/api/vendors",vendorRoutes);
+app.use("/api/history",historyRouter);
 
 app.use(errorHandler);
 

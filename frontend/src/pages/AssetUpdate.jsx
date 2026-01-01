@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
+import { upadateStatAndHis } from "../services/history.services";
+import { useAuth } from "../hook/useAuth";
 
 export default function AssetUpdate() {
   const { id } = useParams(); // public_id
   const nav = useNavigate();
+
+  const {user,loading: userLoading,reloadUser}=useAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,10 +97,43 @@ export default function AssetUpdate() {
       setSaving(false);
     }
   };
+  
+  const changeStatus = async (newStatus) => {
+    const reason = prompt("Reason");
+    if (reason === null) return;
+
+    try {
+      // await API.patch(`/assets/${id}/status`, {
+      //   status: newStatus,
+      //   reason,
+      // });
+//add changeby so need useauth
+      await upadateStatAndHis(id,{newStatus,reason});
+
+      await loadAsset(); // refresh asset
+    } catch (err) {
+      alert(
+        err.response?.data?.message ||
+        "Failed to update status"
+      );
+    }
+  };
+
 
   if (loading) return <p className="p-6">Loading asset...</p>;
-//   
 
+  if(userLoading){   
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    )
+  }
+  if(!user){ 
+    reloadUser();  
+    return null;
+  }
+  
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-semibold">Update Asset</h1>
@@ -109,6 +146,43 @@ export default function AssetUpdate() {
             onChange={(v) => setForm({ ...form, asset_name: v })}
           />
         </Field>
+
+        <StatusDisplay status={form.status} />
+        <div className="border-t pt-4 mt-6">
+          <h3 className="text-sm font-semibold mb-3">
+            Lifecycle Actions
+          </h3>
+
+          {form.status === "ACTIVE" && (
+            <button
+              onClick={() => changeStatus("IN_REPAIR")}
+              className="bg-orange-600 text-white px-4 py-2 rounded mr-3"
+            >
+              Send to Repair
+            </button>
+          )}
+
+          {form.status !== "RETIRED" && (
+            <button
+              onClick={() => changeStatus("RETIRED")}
+              className="bg-gray-700 text-white px-4 py-2 rounded mr-3"
+            >
+              Retire Asset
+            </button>
+          )}
+        
+
+        {form.status !== "ACTIVE" && user.role==="ADMIN" && (
+            <button
+              onClick={() => changeStatus("ACTIVE")}
+              className="bg-green-700 text-white px-4 py-2 rounded mr-3"
+            >
+              Make Asset Active
+            </button>
+          )}
+        </div>
+
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Category">
@@ -180,7 +254,7 @@ export default function AssetUpdate() {
             />
           </Field>
 
-          <Field label="Status">
+          {user.role==="ADMIN" && <Field label="Status">
             <select
               value={form.status}
               onChange={(e) =>
@@ -193,7 +267,7 @@ export default function AssetUpdate() {
               <option value="IN_REPAIR">IN_REPAIR</option>
               <option value="RETIRED">RETIRED</option>
             </select>
-          </Field>
+          </Field>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -287,3 +361,25 @@ const Input = ({ value, onChange, type = "text" }) => (
     className="border rounded px-3 py-2 w-full"
   />
 );
+
+
+const StatusDisplay = ({ status }) => {
+  const COLORS = {
+    ACTIVE: "bg-green-100 text-green-700",
+    IN_REPAIR: "bg-orange-100 text-orange-700",
+    RETIRED: "bg-gray-200 text-gray-600",
+  };
+
+  return (
+    <div>
+      <label className="text-sm text-gray-600 block mb-1">
+        Asset Status
+      </label>
+      <span
+        className={`inline-block px-3 py-1 rounded text-sm font-medium ${COLORS[status]}`}
+      >
+        {status}
+      </span>
+    </div>
+  );
+};

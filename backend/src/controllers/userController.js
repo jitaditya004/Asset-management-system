@@ -10,12 +10,13 @@ exports.me = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     res.json({
       user: {
         user_id: user.user_id,
         full_name: user.full_name,
         email: user.email,
-        role: user.role,
+        role: user.role_name,
         public_id: user.public_id,
       },
     });

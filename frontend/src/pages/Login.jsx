@@ -8,6 +8,8 @@ export default function Login() {
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
 
+  
+
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -29,7 +31,7 @@ export default function Login() {
         <form onSubmit={submit} className="space-y-3">
           <input
             className="w-full border p-2 rounded"
-            placeholder="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setemail(e.target.value)}
             required

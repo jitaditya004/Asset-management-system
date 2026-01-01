@@ -1,4 +1,5 @@
 const db = require("../config/db");
+// const client=await db.pool.connect();
 
 
 async function getCatIdCode(client,catName) {
@@ -20,7 +21,7 @@ async function getSubcatIdCode(client,subcatName, catId) {
   if (subcatRes.rowCount === 0) {
     throw new Error("Subcategory not found");
   }
-  return subcatRes.rows[0];  //you returned row twice
+  return subcatRes.rows[0];  
 }
 
 async function getDepartmentIdByName(client,deptName){
@@ -36,9 +37,8 @@ async function getDepartmentIdByName(client,deptName){
 
 exports.createAsset = async (data) => {
   console.log("inside create asset",data.department);
-  const client=await db.pool.connect();
+  let client=await db.pool.connect();
   try {
-    await client.query("BEGIN");//error
 
     // --- Get category (id/code) ---
     const catRes = await getCatIdCode(client,data.category);
@@ -133,8 +133,8 @@ exports.listAssets = async (filters = {}) => {
     status,
     model_number,
     search,
-    sort_by,
-    sort_direction,
+    sort_by="asset_name",
+    sort_direction="ASC",
     warranty_expiry_status, // can be 'expired', 'expiring_soon', 'valid'
     warranty_expiry_from, // custom date filters
     warranty_expiry_to,
@@ -244,6 +244,7 @@ exports.listAssets = async (filters = {}) => {
   // Sort handling
   let orderBy = "";
   let allowedSort = {
+    asset_name: "asset_name",
     purchase_cost: "purchase_cost",
     warranty_expiry: "warranty_expiry",
   };
@@ -278,7 +279,7 @@ exports.getAssetDepartmentId = async (asset_id) => {
 
 exports.getAssetById = async (public_id) => {
   if (!public_id) {
-    throw new Error("Asset ID required");
+    throw new Error("Public ID required");
   }
   try {
     const query = `
@@ -412,36 +413,39 @@ exports.updateAsset = async (public_id, updateFields = {}) => {
   }
 };
 
-exports.deleteAsset = async (public_id) => {
+exports.deleteAsset = async (asset_id) => {
+  let client=await db.pool.connect();
   try {
-    await db.query("BEGIN");
+    await client.query("BEGIN");
 
     // Get asset_id with public_id
-    const assetRes = await db.query(
-      `SELECT asset_id FROM assets WHERE public_id = $1`,
-      [public_id]
-    );
-    if (assetRes.rows.length === 0) {
-      await db.query("ROLLBACK");
-      return null; // Asset not found
-    }
-    const asset_id = assetRes.rows[0].asset_id;
+    // const assetRes = await client.query(
+    //   `SELECT asset_id FROM assets WHERE public_id = $1`,
+    //   [asset_id]
+    // );
+    // if (assetRes.rows.length === 0) {
+    //   await client.query("ROLLBACK");
+    //   return null; // Asset not found
+    // }
+    // const asset_id = assetRes.rows[0].asset_id;
 
     // Delete locations rows with asset_id, if exist
-    await db.query(`DELETE FROM locations WHERE asset_id = $1`, [asset_id]);
+    // await client.query(`DELETE FROM locations WHERE asset_id = $1`, [asset_id]);
     // Delete files rows with asset_id, if exist
-    await db.query(`DELETE FROM asset_files WHERE asset_id = $1`, [asset_id]);
+    await client.query(`DELETE FROM asset_documents WHERE asset_id = $1`, [asset_id]);
     // Delete asset from assets table
-    const delRes = await db.query(
+    const delRes = await client.query(
       `DELETE FROM assets WHERE asset_id = $1 RETURNING public_id`,
       [asset_id]
     );
 
-    await db.query("COMMIT");
+    await client.query("COMMIT");
     return delRes.rows[0] || null;
   } catch (err) {
-    await db.query("ROLLBACK");
+    await client.query("ROLLBACK");
     throw err;
+  }finally{
+    client.release;
   }
 };
 
@@ -469,7 +473,7 @@ exports.saveAssetFileMeta = async (data) => {
 
 exports.getFilesByFileId = async (fileId) => {
   const res = await db.query(
-    `SELECT id, asset_id, bucket, file_path, original_name, mime_type
+    `SELECT id, asset_id, file_path, original_name, mime_type
      FROM asset_files
      WHERE id = $1`,
     [fileId]
@@ -484,12 +488,12 @@ exports.deleteAssetFileMeta = async (fileId) => {
   );
 };
 
-exports.getFilesByAssetId = async (public_id) => {
+exports.getFilesByAssetId = async (asset_id) => {
   const res = await db.query(
-    `SELECT bucket, file_path
-     FROM asset_files
-     WHERE public_id = $1`,
-    [public_id]
+    `SELECT *
+     FROM asset_documents
+     WHERE asset_id = $1`,
+    [asset_id]          ///change it to asset id
   );
   return res.rows;
 };

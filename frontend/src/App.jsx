@@ -15,6 +15,9 @@ import DesignationPage from "./pages/Designations";
 import Subcategories from "./pages/Subcategories";
 import Vendors from "./pages/Vendors";
 import AssetUpdate from "./pages/AssetUpdate";
+import RegionAssets from "./pages/regions/RegionAssets";
+import RegionMapPicker from "./pages/regions/RegionMapPicker";
+import RegionSelect from "./pages/regions/RegionSelect";
 
 export default function App() {
   
@@ -30,7 +33,6 @@ export default function App() {
 
             {/* Protected Routes (WITH Navbar) */}
             <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            {/* <Route element={<MainLayout/>}> */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/assets" element={<Assets />} />
               <Route path="/assets/create" element={<AssetCreate />} />
@@ -42,6 +44,10 @@ export default function App() {
               <Route path="/subcat" element={<Subcategories />} />
               <Route path="/vendors" element={<Vendors />} />
               <Route path="/asset/:id/update" element={<AssetUpdate />} />
+              <Route path="/regionassets/:regionName" element={<RegionAssets />} />
+              <Route path="/regionselect" element={<RegionSelect />} />
+              <Route path="/regionmappicker" element={<RegionMapPicker />} />
+              <Route path="/" element={<Dashboard />} />
             </Route>
           </Routes>
         

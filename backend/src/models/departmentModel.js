@@ -95,6 +95,7 @@ exports.findByName = async (department_name) => {
       "SELECT department_id, department_name, department_code FROM departments WHERE LOWER(department_name) = LOWER($1) LIMIT 1",
       [department_name]
     );
+    
     return rows[0] || null;
   } catch (err) {
     throw err;

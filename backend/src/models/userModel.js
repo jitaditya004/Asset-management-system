@@ -48,9 +48,11 @@ exports.createUser = async (name, email, passwordHash, phone, designationName, d
     }
     // ALWAYS set role to 'USER' - never accept role from client input
     const role_id = await getIdByName("roles", "role_name", "USER");
+
+    let client=await db.pool.connect();
     try {
-        await db.query("BEGIN");//change it,wrong
-        const result = await db.query(
+        await client.query("BEGIN");
+        const result = await client.query(
             `INSERT INTO users (full_name, email, password_hash, department_id, designation_id, phone)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING user_id, full_name, email`,
@@ -61,26 +63,28 @@ exports.createUser = async (name, email, passwordHash, phone, designationName, d
         const newUserPublicId = `USR-${department_code}-${String(newUser.user_id).padStart(6, '0')}`;
     
         // update db and set public_id
-        await db.query(
+        await client.query(
             `UPDATE users SET public_id = $1 WHERE user_id = $2`,
             [newUserPublicId, newUser.user_id]
         );
         
-        await db.query(
+        await client.query(
             `INSERT INTO user_roles (user_id, role_id)
             VALUES ($1, $2)`,
             [newUser.user_id, role_id]
         );
 
-        await db.query("COMMIT");
+        await client.query("COMMIT");
     
         return {
             ...newUser,
             public_id : newUserPublicId,
         };
     } catch (error) {
-        await db.query("ROLLBACK");
+        await client.query("ROLLBACK");
         throw error;
+    }finally{
+        client.release;
     }
 }
 

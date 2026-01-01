@@ -1,0 +1,26 @@
+INSERT INTO roles (role_name, description)
+VALUES 
+  ('admin','System administrator'),
+  ('asset_manager','Manages assets'),
+  ('viewer','Can only view data');
+
+
+-- make category name unique
+ALTER TABLE asset_categories
+  ADD CONSTRAINT uq_asset_categories_name UNIQUE (category_name);
+
+-- make vendor name unique
+ALTER TABLE vendors
+  ADD CONSTRAINT uq_vendors_name UNIQUE (vendor_name);
+
+-- make location name unique
+ALTER TABLE locations
+  ADD CONSTRAINT uq_locations_name UNIQUE (location_name);
+
+-- make subcategory unique per category (composite unique)
+ALTER TABLE sub_categories
+  ADD CONSTRAINT uq_subcategory_per_category UNIQUE (category_id, subcategory_name);
+
+
+
+
