@@ -1,29 +1,33 @@
 export const STATUS_STYLES = {
   REQUESTED: {
-    dot: "bg-blue-500",
-    text: "text-blue-700",
-    line: "bg-blue-300",
+    dot: "bg-blue-400",
+    text: "text-blue-300",
+    line: "bg-blue-400/40",
   },
+
   ACTIVE: {
-    dot: "bg-green-500",
-    text: "text-green-700",
-    line: "bg-green-300",
+    dot: "bg-emerald-400",
+    text: "text-emerald-300",
+    line: "bg-emerald-400/40",
   },
+
   IN_REPAIR: {
-    dot: "bg-yellow-500",
-    text: "text-yellow-700",
-    line: "bg-yellow-300",
+    dot: "bg-amber-400",
+    text: "text-amber-300",
+    line: "bg-amber-400/40",
   },
+
   RETIRED: {
-    dot: "bg-gray-500",
-    text: "text-gray-700",
-    line: "bg-gray-300",
+    dot: "bg-gray-400",
+    text: "text-gray-300",
+    line: "bg-gray-400/40",
   },
 };
 
 
+
 export const DEFAULT_STYLE = {
-  dot: "bg-blue-500",
-  text: "text-blue-700",
-  line: "bg-gray-300",
+  dot: "bg-indigo-400",
+  text: "text-indigo-300",
+  line: "bg-indigo-400/40",
 };

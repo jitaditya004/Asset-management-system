@@ -14,6 +14,10 @@ const departmentRoutes = require("./routes/departmentRouter");
 const designationRoutes = require("./routes/designationRouter");
 const vendorRoutes= require("./routes/vendorRouter");
 const historyRouter= require("./routes/historyRouter");
+const requestRouters=require("./routes/request.routes");
+const maintenanceRoutes=require("./routes/maintenance.routes");
+const locationRoutes=require("./modules/location/location.routes")
+const SuggestionRoutes=require("./modules/suggestions/suggestion.route");
 
 const app = express();
 
@@ -35,6 +39,7 @@ app.use(
   })
 );
 
+app.use("/api/requests",requestRouters);
 app.use("/api/auth", authRoutes);
 app.use("/api/assets", assetRoutes);
 app.use("/api/user", userRoutes);
@@ -44,6 +49,9 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/designations", designationRoutes);
 app.use("/api/vendors",vendorRoutes);
 app.use("/api/history",historyRouter);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/locations",locationRoutes);
+app.use("/api/suggestions",SuggestionRoutes);
 
 app.use(errorHandler);
 

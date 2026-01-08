@@ -1,0 +1,13 @@
+BEGIN;
+
+SET session_replication_role = replica;
+
+DELETE FROM users WHERE user_id <> 42;
+
+COMMIT; -- 🔥 permanent delete
+
+SET session_replication_role = origin;
+
+
+
+

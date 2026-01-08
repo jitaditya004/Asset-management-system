@@ -1,0 +1,238 @@
+Ref: users.department_id > departments.department_id
+Ref: users.designation_id > designations.designation_id
+
+Ref: user_roles.user_id > users.user_id
+Ref: user_roles.role_id > roles.role_id
+
+Ref: sub_categories.category_id > asset_categories.category_id
+
+Ref: assets.category_id > asset_categories.category_id
+Ref: assets.subcategory_id > sub_categories.subcategory_id
+Ref: assets.vendor_id > vendors.vendor_id
+Ref: assets.location_id > locations.location_id
+Ref: assets.assigned_to > users.user_id
+Ref: assets.department_id > departments.department_id
+
+Ref: asset_documents.asset_id > assets.asset_id
+Ref: asset_documents.uploaded_by > users.user_id
+
+Ref: asset_images.asset_id > assets.asset_id
+Ref: asset_identifiers.asset_id > assets.asset_id
+Ref: asset_failures.asset_id > assets.asset_id
+Ref: asset_history.asset_id > assets.asset_id
+
+Ref: asset_status_history.asset_id > assets.asset_id
+Ref: asset_status_history.changed_by > users.user_id
+
+Ref: asset_requests.asset_id > assets.asset_id
+Ref: asset_requests.requested_by > users.user_id
+Ref: asset_requests.reviewed_by > users.user_id
+Ref: asset_requests.requested_department_id > departments.department_id
+
+Ref: maintenance_requests.asset_id > assets.asset_id
+Ref: maintenance_requests.reported_by > users.user_id
+Ref: maintenance_requests.reviewed_by > users.user_id
+
+Ref: telemetry.asset_id > assets.asset_id
+Ref: audit_log.actor_id > users.user_id
+
+
+
+
+
+Table users {
+  user_id int [pk, increment]
+  full_name varchar
+  email varchar
+  password_hash text
+  phone varchar
+  is_active boolean
+  created_at timestamp
+  department_id int
+  designation_id int
+  public_id text
+}
+
+Table roles {
+  role_id int [pk, increment]
+  role_name varchar
+  description text
+}
+
+Table user_roles {
+  user_id int [pk]
+  role_id int [pk]
+}
+
+Table departments {
+  department_id int [pk, increment]
+  department_name text
+  department_code text
+  created_at timestamp
+}
+
+Table designations {
+  designation_id int [pk, increment]
+  designation_name text
+  designation_code text
+  created_at timestamp
+}
+
+Table asset_categories {
+  category_id int [pk, increment]
+  category_name varchar
+  description text
+  category_code text
+}
+
+Table sub_categories {
+  subcategory_id int [pk, increment]
+  category_id int
+  subcategory_name varchar
+  description text
+  subcategory_code text
+}
+
+Table assets {
+  asset_id int [pk, increment]
+  asset_name varchar
+  category_id int
+  subcategory_id int
+  serial_number varchar
+  model_number varchar
+  purchase_date date
+  purchase_cost numeric
+  vendor_id int
+  warranty_expiry date
+  location_id int
+  assigned_to int
+  department_id int
+  maintenance_id int
+  description text
+  status text
+  public_id text
+  created_at timestamp
+}
+
+Table asset_documents {
+  document_id int [pk, increment]
+  asset_id int
+  document_type varchar
+  file_path text
+  original_name text
+  uploaded_by int
+  uploaded_at timestamp
+  expiry_date date
+}
+
+Table asset_images {
+  image_id int [pk, increment]
+  asset_id int
+  file_path text
+  uploaded_at timestamp
+}
+
+Table asset_identifiers {
+  identifier_id int [pk, increment]
+  asset_id int
+  qr_code text
+  rfid_tag text
+  generated_at timestamp
+}
+
+Table asset_failures {
+  failure_id int [pk, increment]
+  asset_id int
+  failure_description text
+  failure_date date
+  resolved boolean
+  resolved_date date
+}
+
+Table asset_history {
+  history_id int [pk, increment]
+  asset_id int
+  old_location_id int
+  new_location_id int
+  changed_by int
+  change_date timestamp
+}
+
+Table asset_status_history {
+  history_id int [pk, increment]
+  asset_id int
+  old_status varchar
+  new_status varchar
+  reason text
+  changed_by int
+  changed_at timestamp
+  asset_public_id text
+}
+
+Table asset_requests {
+  request_id int [pk, increment]
+  asset_id int
+  requested_by int
+  requested_department_id int
+  status text
+  reason text
+  admin_comment text
+  reviewed_by int
+  reviewed_at timestamp
+  created_at timestamp
+}
+
+Table maintenance_requests {
+  maintenance_id int [pk, increment]
+  asset_id int
+  reported_by int
+  issue_description text
+  maintenance_type varchar
+  status varchar
+  priority varchar
+  assigned_vendor text
+  created_at timestamp
+  completed_at timestamp
+  reviewed_by int
+  cancelled_at timestamp
+  rejected_at timestamp
+  rejection_reason text
+}
+
+Table locations {
+  location_id int [pk, increment]
+  location_name varchar
+  address text
+  region varchar
+  description text
+  lat double
+  long double
+}
+
+Table vendors {
+  vendor_id int [pk, increment]
+  vendor_name varchar
+  contact_person varchar
+  phone varchar
+  email varchar
+  address text
+}
+
+Table audit_log {
+  id int [pk, increment]
+  actor_id int
+  action text
+  target_type varchar
+  target_id int
+  payload jsonb
+  created_at timestamp
+}
+
+Table telemetry {
+  id int [pk, increment]
+  asset_id int
+  sensor_id varchar
+  ts timestamp
+  metrics jsonb
+  raw_payload jsonb
+}

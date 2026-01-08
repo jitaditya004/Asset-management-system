@@ -18,6 +18,14 @@ import AssetUpdate from "./pages/AssetUpdate";
 import RegionAssets from "./pages/regions/RegionAssets";
 import RegionMapPicker from "./pages/regions/RegionMapPicker";
 import RegionSelect from "./pages/regions/RegionSelect";
+import MyRequests from "./pages/MyRequests";
+import AdminRequests from "./pages/AdminRequests";
+import RequestAsset from "./pages/RequestAsset";
+import MaintenanceAdmin from "./pages/maintenance/MaintenanceAdmin";
+import LocationsAdmin from "./pages/LocationsAdmin";
+import SuggestionPage from "./pages/SuggestionPage";
+import Unauthorized from "./pages/Unauthorized";
+import RequireRole from "./components/auth/RequireRole";
 
 export default function App() {
   
@@ -33,22 +41,122 @@ export default function App() {
 
             {/* Protected Routes (WITH Navbar) */}
             <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+
+              {/* Public / all authenticated users */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/assets" element={<Assets />} />
-              <Route path="/assets/create" element={<AssetCreate />} />
               <Route path="/assets/:public_id" element={<AssetDetail />} />
-              <Route path="/category" element={<Categories />} />
-              <Route path="/departments" element={<Department />} />
-              <Route path="/designations" element={<DesignationPage />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/subcat" element={<Subcategories />} />
-              <Route path="/vendors" element={<Vendors />} />
-              <Route path="/asset/:id/update" element={<AssetUpdate />} />
               <Route path="/regionassets/:regionName" element={<RegionAssets />} />
               <Route path="/regionselect" element={<RegionSelect />} />
               <Route path="/regionmappicker" element={<RegionMapPicker />} />
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/my-requests" element={<MyRequests />} />
+              <Route path="/asset/:assetId/request" element={<RequestAsset />} />
+              <Route path="/suggestion" element={<SuggestionPage />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+
+              {/* ADMIN ONLY */}
+              <Route
+                path="/assets/create"
+                element={
+                  <RequireRole roles={["ADMIN"]}>
+                    <AssetCreate />
+                  </RequireRole>
+                }
+              />
+
+              <Route
+                path="/asset/:id/update"
+                element={
+                  <RequireRole roles={["ADMIN"]}>
+                    <AssetUpdate />
+                  </RequireRole>
+                }
+              />
+
+              <Route
+                path="/adminrequests"
+                element={
+                  <RequireRole roles={["ADMIN"]}>
+                    <AdminRequests />
+                  </RequireRole>
+                }
+              />
+
+              <Route
+                path="/maintenance/admin"
+                element={
+                  <RequireRole roles={["ADMIN"]}>
+                    <MaintenanceAdmin />
+                  </RequireRole>
+                }
+              />
+
+              {/* Optional: admin-only master data */}
+              <Route
+                path="/category"
+                element={
+               
+                    <Categories />
+            
+                }
+              />
+
+              <Route
+                path="/departments"
+                element={
+            
+                    <Department />
+            
+                }
+              />
+
+              <Route
+                path="/designations"
+                element={
+           
+                    <DesignationPage />
+          
+                }
+              />
+
+              <Route
+                path="/users"
+                element={
+                  <RequireRole roles={["ADMIN"]}>
+                    <Users />
+                  </RequireRole>
+                }
+              />
+
+              <Route
+                path="/subcat"
+                element={
+          
+                    <Subcategories />
+         
+                }
+              />
+
+              <Route
+                path="/vendors"
+                element={
+              
+                    <Vendors />
+           
+                }
+              />
+
+              <Route
+                path="/locations"
+                element={
+               
+                    <LocationsAdmin />
+             
+                }
+              />
+
             </Route>
+
           </Routes>
         
 

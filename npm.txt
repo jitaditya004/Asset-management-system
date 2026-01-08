@@ -60,3 +60,8 @@ npm install cookie-parser
 npm install framer-motion recharts
 
 npm install @supabase/supabase-js
+
+npm install leaflet react-leaflet
+npm install nodemailer express-rate-limit express-validator
+npm install lucide-react
+npm install @headlessui/react

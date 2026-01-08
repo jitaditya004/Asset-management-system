@@ -80,18 +80,48 @@ export default function Register() {
   
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-purple-700">
+    <div className="
+      min-h-screen flex items-center justify-center
+      bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600
+    ">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white p-6 rounded-lg shadow space-y-4"
+        className="
+          w-full max-w-md
+          bg-white/10 backdrop-blur-xl
+          border border-white/20
+          rounded-2xl
+          shadow-2xl
+          p-8
+          space-y-4
+          text-white
+          animate-fadeIn
+        "
       >
-        <h2 className="text-2xl font-semibold mb-4 text-center">
-          Create Account
-        </h2>
+        {/* Title */}
+        <div className="text-center mb-2">
+          <h2 className="text-3xl font-semibold tracking-wide">
+            Create Account ✨
+          </h2>
+          <p className="text-white/60 text-sm mt-1">
+            Join the Asset Management Portal
+          </p>
+        </div>
 
-        {error && <p className="text-red-600 mb-2">{error}</p>}
-        {success && <p className="text-green-600 mb-2">{success}</p>}
+        {/* Messages */}
+        {error && (
+          <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
 
+        {success && (
+          <p className="text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
+            {success}
+          </p>
+        )}
+
+        {/* Inputs */}
         <Input
           label="Full Name *"
           name="full_name"
@@ -122,13 +152,7 @@ export default function Register() {
           onChange={handleChange}
         />
 
-        {/* <Input
-          label="Designation"
-          name="designation"
-          value={form.designation}
-          onChange={handleChange}
-        /> */}
-
+        {/* Selects */}
         <SelectField
           label="Department *"
           name="department"
@@ -138,10 +162,10 @@ export default function Register() {
           placeholder="Select Department"
           getKey={(d) => d.department_id}
           getLabel={(d) => d.department_name}
-          getValue={(d)=>d.department_name}
+          getValue={(d) => d.department_name}
         />
 
-         <SelectField
+        <SelectField
           label="Designation"
           name="designation"
           value={form.designation}
@@ -150,43 +174,64 @@ export default function Register() {
           placeholder="Select Designation"
           getKey={(d) => d.designation_id}
           getLabel={(d) => d.designation_name}
-          getValue={(d)=>d.designation_name}
+          getValue={(d) => d.designation_name}
         />
 
-        {/* <Input
-          label="Department *"
-          name="department"
-          value={form.department}
-          onChange={handleChange}
-        /> */}
-
+        {/* Submit */}
         <button
           disabled={loading}
-          className="w-full mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="
+            w-full mt-4
+            bg-gradient-to-r from-indigo-500 to-purple-500
+            hover:from-indigo-600 hover:to-purple-600
+            text-white py-2.5 rounded-lg
+            font-medium
+            shadow-lg hover:shadow-xl
+            transition
+            disabled:opacity-50
+          "
         >
           {loading ? "Creating..." : "Sign Up"}
         </button>
-        <div className="mt-4 text-center">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-600">
-         Login
-          </Link>
-         </div>
 
+        {/* Footer */}
+        <div className="mt-4 text-center text-sm text-white/70">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-indigo-300 hover:text-indigo-200 font-medium transition"
+          >
+            Login
+          </Link>
+        </div>
       </form>
-      
     </div>
   );
+
 }
 
 function Input({ label, ...props }) {
   return (
-    <div className="mb-3">
-      <label className="block text-sm font-medium mb-1">{label}</label>
+    <div>
+      <label className="block text-sm mb-1 text-white/80">
+        {label}
+      </label>
       <input
         {...props}
-        className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="
+          w-full
+          bg-white/10 backdrop-blur
+          border border-white/20
+          px-4 py-2.5
+          rounded-lg
+          text-white
+          placeholder:text-white/40
+          focus:outline-none
+          focus:ring-2 focus:ring-indigo-400
+          transition
+        "
       />
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import API from "../api/api";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,6 @@ export default function ProtectedRoute({ children }) {
     });
   }, []);
 
-  if (loading) return <div className="container py-8">Loading...</div>;
+  if (loading) return <LoadingScreen/>
   return ok ? children : <Navigate to="/login" replace />;
 }

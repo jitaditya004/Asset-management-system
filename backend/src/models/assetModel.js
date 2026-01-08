@@ -19,13 +19,12 @@ async function getSubcatIdCode(client,subcatName, catId) {
     [subcatName, catId]
   );
   if (subcatRes.rowCount === 0) {
-    throw new Error("Subcategory not found");
+    throw new Error("Subcategory not found or subcategory is not of that category");
   }
   return subcatRes.rows[0];  
 }
 
 async function getDepartmentIdByName(client,deptName){
-  console.log(deptName);
   const deptRes=await client.query(`SELECT department_id FROM departments WHERE department_name=$1`,[deptName]);
 
   if(deptRes.rowCount===0){
@@ -36,10 +35,9 @@ async function getDepartmentIdByName(client,deptName){
 }
 
 exports.createAsset = async (data) => {
-  console.log("inside create asset",data.department);
   let client=await db.pool.connect();
   try {
-
+    await client.query("BEGIN");
     // --- Get category (id/code) ---
     const catRes = await getCatIdCode(client,data.category);
     const { category_id, category_code } = catRes;
@@ -50,6 +48,9 @@ exports.createAsset = async (data) => {
 
     //--- Get vendor (id) ---
     const vendorRes= await client.query("SELECT vendor_id FROM vendors WHERE vendor_name = $1", [data.vendor]);
+    if(vendorRes.rowCount===0){
+      throw new Error("Vendor not found");
+    }
     const {vendor_id}=vendorRes.rows[0];
 
     const DeptRes=await getDepartmentIdByName(client,data.department);
@@ -89,10 +90,10 @@ exports.createAsset = async (data) => {
     let location_id = null;
     if (data.latitude && data.longitude) {
       const locRes = await client.query(
-        `INSERT INTO locations (asset_id, latitude, longitude)
-                 VALUES ($1, $2, $3)
+        `INSERT INTO locations (asset_id,location_name,region, lat, long)
+                 VALUES ($1, $2, $3,$4 , $5)
                  RETURNING location_id`,
-        [asset_id, data.latitude, data.longitude]
+        [asset_id, data.location,data.region, data.latitude, data.longitude]
       );
       location_id = locRes.rows[0].location_id;
     }
@@ -225,18 +226,30 @@ exports.listAssets = async (filters = {}) => {
   // Filter by department for ASSET_MANAGER
   // Assets are linked to departments through assigned_to user's department
   if (department_id) {
-    whereClauses.push(`
-      EXISTS (
-        SELECT 1 FROM users u 
-        WHERE u.user_id = assets.assigned_to 
-        AND u.department_id = $${idx}
-      )
-    `);
+    // whereClauses.push(`
+    //   EXISTS (
+    //     SELECT 1 FROM users u 
+    //     WHERE u.user_id = assets.assigned_to 
+    //     AND u.department_id = $${idx}
+    //   )
+    // `);
+    whereClauses.push(`u.department_id = $${idx++}`);
     values.push(department_id);
     idx++;
   }
 
-  let query = `SELECT * FROM assets`;
+  let query = `
+    SELECT 
+      a.*,
+      u.full_name,
+      u.public_id,
+      a.public_id as asset_public_id,
+      d.department_name 
+    FROM assets a
+    LEFT JOIN users u ON a.assigned_to = u.user_id
+    LEFT JOIN departments d ON a.department_id = d.department_id
+  `;
+
   if (whereClauses.length) {
     query += " WHERE " + whereClauses.join(" AND ");
   }
@@ -277,7 +290,7 @@ exports.getAssetDepartmentId = async (asset_id) => {
   }
 };
 
-exports.getAssetById = async (public_id) => {
+exports.getAssetById = async (public_id) => { 
   if (!public_id) {
     throw new Error("Public ID required");
   }
@@ -290,14 +303,18 @@ exports.getAssetById = async (public_id) => {
               v.vendor_name AS vendor_name,
               l.long AS longitude, 
               l.lat AS latitude,
-              l.*,
-              u.department_id AS asset_department_id
+              l.region,
+              l.location_name,
+              u.department_id AS asset_department_id,
+              d.department_name,
+              a.description
           FROM assets a
           LEFT JOIN asset_categories c ON a.category_id = c.category_id
           LEFT JOIN sub_categories sc ON a.subcategory_id = sc.subcategory_id
           LEFT JOIN vendors v ON a.vendor_id = v.vendor_id
           LEFT JOIN locations l ON a.location_id = l.location_id
-          LEFT JOIN users u ON a.assigned_to = u.public_id
+          LEFT JOIN users u ON a.assigned_to = u.user_id
+          LEFT JOIN departments d ON a.department_id=d.department_id
           WHERE a.public_id = $1
       `;
     const values = [public_id];
@@ -388,7 +405,7 @@ exports.updateAsset = async (public_id, updateFields = {}) => {
       if (locRes.rows.length > 0 && locRes.rows[0].location_id) {
         const locationId = locRes.rows[0].location_id;
         await db.query(
-          `UPDATE locations SET longitude = $1, latitude = $2 WHERE id = $3`,
+          `UPDATE locations SET long = $1, lat = $2 WHERE location_id = $3`,
           [updateFields.longitude, updateFields.latitude, locationId]
         );
       }

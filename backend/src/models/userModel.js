@@ -5,12 +5,12 @@ const db = require("../config/db");
 async function getIdByName(table, column, value) {
     let query, params;
     if (table === "departments") {
-        query = `SELECT department_id AS id, department_code FROM departments WHERE ${column} = $1`;
+        query = `SELECT * FROM departments WHERE ${column} = $1`;
         params = [value];
         const result = await db.query(query, params);
         if (result.rows.length > 0) {
             return {
-                id: result.rows[0].id,
+                department_id: result.rows[0].department_id,
                 department_code: result.rows[0].department_code
             };
         } else {
@@ -84,7 +84,7 @@ exports.createUser = async (name, email, passwordHash, phone, designationName, d
         await client.query("ROLLBACK");
         throw error;
     }finally{
-        client.release;
+        client.release();
     }
 }
 

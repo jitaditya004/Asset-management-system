@@ -64,7 +64,8 @@ const {PERMISSIONS} = require("../config/permission");
 // list all assets (accessible by authenticated users)
 router.get("/", authenticate, assetController.list);
 // get one asset (admin and asset_manager depart. restrictions checked in controller)
-router.get("/:id", authenticate, assetController.getOne);
+router.get("/:id", authenticate, assetController.getOne);//ppublic_id
+router.post("/",upload.single("file"),authenticate,assetController.create);
 // update asset (admin and asset_manager, depart. restrictions checked in controller)
 router.patch(
   "/:id",

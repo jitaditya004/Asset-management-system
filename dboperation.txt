@@ -24,3 +24,101 @@ ALTER TABLE sub_categories
 
 
 
+CREATE TABLE asset_requests (
+  request_id SERIAL PRIMARY KEY,
+
+  asset_id INTEGER NOT NULL REFERENCES assets(asset_id),
+  requested_by INTEGER NOT NULL REFERENCES users(user_id),
+
+  requested_department_id INTEGER NOT NULL REFERENCES departments(department_id),
+
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  -- PENDING | APPROVED | REJECTED
+
+  reason TEXT,               -- optional (why user wants asset)
+  admin_comment TEXT,        -- optional (why rejected)
+
+  reviewed_by INTEGER REFERENCES users(user_id), -- admin
+  reviewed_at TIMESTAMP,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+begin;
+
+set session_replication_role=replica;
+
+delete from users where user_id not in (2,5,6);
+
+commit;
+
+set session_replication_role=origin;
+
+
+ALTER TABLE maintenance_requests
+ADD COLUMN rejected_at TIMESTAMP,
+ADD COLUMN rejection_reason TEXT;
+
+
+
+
+
+
+
+CREATE TABLE maintenance_logs (
+  log_id SERIAL PRIMARY KEY,
+  maintenance_id INT REFERENCES maintenance_requests(maintenance_id),
+  action TEXT,
+  performed_by INT REFERENCES users(user_id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+
+drop table maintenance_attachments;
+
+drop table maintenance_records;
+
+
+CREATE TABLE maintenance_requests (
+  maintenance_id SERIAL PRIMARY KEY,
+  asset_id INT NOT NULL REFERENCES assets(asset_id),
+  reported_by INT REFERENCES users(user_id),
+  issue_description TEXT NOT NULL,
+  maintenance_type VARCHAR(20) DEFAULT 'CORRECTIVE',
+  status VARCHAR(20) DEFAULT 'OPEN',
+  priority VARCHAR(10) DEFAULT 'MEDIUM',
+  assigned_vendor TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  completed_at TIMESTAMP
+);
+
+ALTER TABLE assets
+ALTER COLUMN status
+TYPE TEXT
+USING status::text;
+
+
+SELECT
+  table_name,
+  column_name,
+  data_type,
+  is_nullable,
+  column_default
+FROM information_schema.columns
+WHERE table_schema = 'public'
+ORDER BY table_name, ordinal_position;
+
+
+ALTER TABLE assets
+ADD CONSTRAINT fk_assets_assigned_to_user
+FOREIGN KEY (assigned_to)
+REFERENCES users(user_id)
+ON DELETE SET NULL;
+
+
+
+CREATE UNIQUE INDEX uniq_active_maintenance_per_asset
+ON maintenance_requests (asset_id)
+WHERE status IN ('OPEN', 'IN_PROGRESS');

@@ -5,8 +5,10 @@ import { upadateStatAndHis } from "../services/history.services";
 import { useAuth } from "../hook/useAuth";
 
 export default function AssetUpdate() {
-  const { id } = useParams(); // public_id
+  const { id } = useParams(); // public_id asset
   const nav = useNavigate();
+
+  console.log(id);
 
   const {user,loading: userLoading,reloadUser}=useAuth();
 
@@ -50,7 +52,7 @@ export default function AssetUpdate() {
         purchase_date: a.purchase_date?.slice(0, 10) || "",
         purchase_cost: a.purchase_cost || "",
         status: a.status || "",
-        assigned_to: a.assigned_to || "NOT ASSIGNED",
+        assigned_to: a.assigned_to,
         warranty_expiry: a.warranty_expiry?.slice(0, 10) || "",
         description: a.description || "",
         latitude: a.latitude || "",
@@ -78,8 +80,7 @@ export default function AssetUpdate() {
         purchase_date: form.purchase_date,
         purchase_cost: form.purchase_cost,
         status: form.status,
-        assigned_to:
-          form.assigned_to === "" ? "NOT ASSIGNED" : form.assigned_to,
+        assigned_to:form.assigned_to,
         warranty_expiry: form.warranty_expiry,
         description: form.description,
         latitude: form.latitude,
@@ -133,114 +134,128 @@ export default function AssetUpdate() {
     reloadUser();  
     return null;
   }
-  
-  return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-semibold">Update Asset</h1>
 
-    {error && <p className=" text-red-600">{error}</p> }
-      <div className="bg-white p-6 rounded shadow space-y-4">
+return (
+  <div className="p-6 max-w-5xl mx-auto space-y-6 text-white">
+    {/* Header */}
+    <div className="flex items-center justify-between">
+      <h1 className="text-2xl font-semibold tracking-wide">
+        ✏️ Update Asset
+      </h1>
+
+      <StatusDisplay status={form.status} />
+    </div>
+
+    {error && (
+      <div className="bg-red-500/10 border border-red-500/20 text-red-300 rounded-lg px-4 py-2">
+        {error}
+      </div>
+    )}
+
+    <div
+      className="
+        bg-white/10 backdrop-blur-xl
+        border border-white/10
+        rounded-2xl p-6
+        shadow-xl
+        space-y-6
+      "
+    >
+      {/* Basic Info */}
+      <Section title="Basic Information">
         <Field label="Asset Name">
           <Input
             value={form.asset_name}
             onChange={(v) => setForm({ ...form, asset_name: v })}
           />
         </Field>
+      </Section>
 
-        <StatusDisplay status={form.status} />
-        <div className="border-t pt-4 mt-6">
-          <h3 className="text-sm font-semibold mb-3">
-            Lifecycle Actions
-          </h3>
-
+      {/* Lifecycle */}
+      <Section title="Lifecycle Actions">
+        <div className="flex flex-wrap gap-3">
           {form.status === "ACTIVE" && (
-            <button
+            <ActionButton
+              color="orange"
               onClick={() => changeStatus("IN_REPAIR")}
-              className="bg-orange-600 text-white px-4 py-2 rounded mr-3"
             >
-              Send to Repair
-            </button>
+              🔧 Send to Repair
+            </ActionButton>
           )}
 
           {form.status !== "RETIRED" && (
-            <button
+            <ActionButton
+              color="gray"
               onClick={() => changeStatus("RETIRED")}
-              className="bg-gray-700 text-white px-4 py-2 rounded mr-3"
             >
-              Retire Asset
-            </button>
+              🗑 Retire Asset
+            </ActionButton>
           )}
-        
 
-        {form.status !== "ACTIVE" && user.role==="ADMIN" && (
-            <button
+          {form.status !== "ACTIVE" && user.role === "ADMIN" && (
+            <ActionButton
+              color="green"
               onClick={() => changeStatus("ACTIVE")}
-              className="bg-green-700 text-white px-4 py-2 rounded mr-3"
             >
-              Make Asset Active
-            </button>
+              ✅ Make Active
+            </ActionButton>
           )}
         </div>
+      </Section>
 
-
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Classification */}
+      <Section title="Classification">
+        <Grid>
           <Field label="Category">
             <Input
               value={form.category_name}
-              onChange={(v) =>
-                setForm({ ...form, category_name: v })
-              }
+              onChange={(v) => setForm({ ...form, category_name: v })}
             />
           </Field>
 
           <Field label="Subcategory">
             <Input
               value={form.subcategory_name}
-              onChange={(v) =>
-                setForm({ ...form, subcategory_name: v })
-              }
+              onChange={(v) => setForm({ ...form, subcategory_name: v })}
             />
           </Field>
-        </div>
+        </Grid>
 
         <Field label="Vendor">
           <Input
             value={form.vendor_name}
-            onChange={(v) =>
-              setForm({ ...form, vendor_name: v })
-            }
+            onChange={(v) => setForm({ ...form, vendor_name: v })}
           />
         </Field>
+      </Section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Identifiers */}
+      <Section title="Identifiers">
+        <Grid>
           <Field label="Serial Number">
             <Input
               value={form.serial_number}
-              onChange={(v) =>
-                setForm({ ...form, serial_number: v })
-              }
+              onChange={(v) => setForm({ ...form, serial_number: v })}
             />
           </Field>
 
           <Field label="Model Number">
             <Input
               value={form.model_number}
-              onChange={(v) =>
-                setForm({ ...form, model_number: v })
-              }
+              onChange={(v) => setForm({ ...form, model_number: v })}
             />
           </Field>
-        </div>
+        </Grid>
+      </Section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Purchase */}
+      <Section title="Purchase Details">
+        <Grid cols={3}>
           <Field label="Purchase Date">
             <Input
               type="date"
               value={form.purchase_date}
-              onChange={(v) =>
-                setForm({ ...form, purchase_date: v })
-              }
+              onChange={(v) => setForm({ ...form, purchase_date: v })}
             />
           </Field>
 
@@ -248,35 +263,36 @@ export default function AssetUpdate() {
             <Input
               type="number"
               value={form.purchase_cost}
-              onChange={(v) =>
-                setForm({ ...form, purchase_cost: v })
-              }
+              onChange={(v) => setForm({ ...form, purchase_cost: v })}
             />
           </Field>
 
-          {user.role==="ADMIN" && <Field label="Status">
-            <select
-              value={form.status}
-              onChange={(e) =>
-                setForm({ ...form, status: e.target.value })
-              }
-              className="border rounded px-3 py-2 w-full"
-            >
-              <option value="">Select</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="IN_REPAIR">IN_REPAIR</option>
-              <option value="RETIRED">RETIRED</option>
-            </select>
-          </Field>}
-        </div>
+          {user.role === "ADMIN" && (
+            <Field label="Status">
+              <select
+                value={form.status}
+                onChange={(e) =>
+                  setForm({ ...form, status: e.target.value })
+                }
+                className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2 text-white"
+              >
+                <option value="">Select</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="IN_REPAIR">IN_REPAIR</option>
+                <option value="RETIRED">RETIRED</option>
+              </select>
+            </Field>
+          )}
+        </Grid>
+      </Section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Assigned To (User Public ID)">
+      {/* Assignment */}
+      <Section title="Assignment">
+        <Grid>
+          <Field label="Assigned To">
             <Input
               value={form.assigned_to}
-              onChange={(v) =>
-                setForm({ ...form, assigned_to: v })
-              }
+              onChange={(v) => setForm({ ...form, assigned_to: v })}
             />
           </Field>
 
@@ -284,69 +300,120 @@ export default function AssetUpdate() {
             <Input
               type="date"
               value={form.warranty_expiry}
-              onChange={(v) =>
-                setForm({ ...form, warranty_expiry: v })
-              }
+              onChange={(v) => setForm({ ...form, warranty_expiry: v })}
             />
           </Field>
-        </div>
+        </Grid>
+      </Section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Location */}
+      <Section title="Location">
+        <Grid>
           <Field label="Latitude">
             <Input
               value={form.latitude}
-              onChange={(v) =>
-                setForm({ ...form, latitude: v })
-              }
+              onChange={(v) => setForm({ ...form, latitude: v })}
             />
           </Field>
 
           <Field label="Longitude">
             <Input
               value={form.longitude}
-              onChange={(v) =>
-                setForm({ ...form, longitude: v })
-              }
+              onChange={(v) => setForm({ ...form, longitude: v })}
             />
           </Field>
-        </div>
+        </Grid>
+      </Section>
 
-        <Field label="Description">
-          <textarea
-            value={form.description}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
-            rows={3}
-            className="border rounded px-3 py-2 w-full"
-          />
-        </Field>
+      {/* Description */}
+      <Section title="Description">
+        <textarea
+          value={form.description}
+          onChange={(e) =>
+            setForm({ ...form, description: e.target.value })
+          }
+          rows={3}
+          className="
+            w-full rounded-lg
+            bg-white/10 border border-white/10
+            px-3 py-2 text-white
+          "
+        />
+      </Section>
 
-        <div className="flex gap-3">
-          <button
-            onClick={updateAsset}
-            disabled={saving}
-            className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Update Asset"}
-          </button>
+      {/* Actions */}
+      <div className="flex gap-4 pt-4">
+        <button
+          onClick={updateAsset}
+          disabled={saving}
+          className="
+            bg-gradient-to-r from-indigo-600 to-purple-600
+            hover:from-indigo-700 hover:to-purple-700
+            px-6 py-2 rounded-lg
+            text-white font-medium
+            disabled:opacity-50
+          "
+        >
+          {saving ? "Saving..." : "Update Asset"}
+        </button>
 
-          <button
-            onClick={() => nav(-1)}
-            className="px-5 py-2 rounded border"
-          >
-            Cancel
-          </button>
-        </div>
+        <button
+          onClick={() => nav(-1)}
+          className="
+            px-6 py-2 rounded-lg
+            border border-white/20
+            text-white/80 hover:bg-white/10
+          "
+        >
+          Cancel
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
+const Section = ({ title, children }) => (
+  <div className="space-y-4">
+    <h3 className="text-sm font-semibold uppercase tracking-wide text-white/60">
+      {title}
+    </h3>
+    {children}
+  </div>
+);
+
+const Grid = ({ children, cols = 2 }) => (
+  <div className={`grid grid-cols-1 md:grid-cols-${cols} gap-4`}>
+    {children}
+  </div>
+);
+
+const ActionButton = ({ color, children, ...props }) => {
+  const styles = {
+    orange: "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30",
+    gray: "bg-gray-500/20 text-gray-300 hover:bg-gray-500/30",
+    green: "bg-green-500/20 text-green-300 hover:bg-green-500/30",
+  };
+
+  return (
+    <button
+      {...props}
+      className={`
+        px-4 py-2 rounded-lg
+        font-medium
+        transition
+        ${styles[color]}
+      `}
+    >
+      {children}
+    </button>
+  );
+};
 
 const Field = ({ label, children }) => (
   <div>
-    <label className="text-sm text-gray-600 block mb-1">
+    <label className="block text-xs mb-1 text-white/50">
       {label}
     </label>
     {children}
@@ -358,28 +425,33 @@ const Input = ({ value, onChange, type = "text" }) => (
     type={type}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className="border rounded px-3 py-2 w-full"
+    className="
+      w-full rounded-lg
+      bg-white/10 border border-white/10
+      px-3 py-2 text-white
+      focus:outline-none focus:ring-2 focus:ring-indigo-500
+    "
   />
 );
 
-
 const StatusDisplay = ({ status }) => {
-  const COLORS = {
-    ACTIVE: "bg-green-100 text-green-700",
-    IN_REPAIR: "bg-orange-100 text-orange-700",
-    RETIRED: "bg-gray-200 text-gray-600",
+  const styles = {
+    ACTIVE: "bg-green-500/20 text-green-300",
+    IN_REPAIR: "bg-orange-500/20 text-orange-300",
+    RETIRED: "bg-gray-500/20 text-gray-300",
   };
 
   return (
-    <div>
-      <label className="text-sm text-gray-600 block mb-1">
-        Asset Status
-      </label>
-      <span
-        className={`inline-block px-3 py-1 rounded text-sm font-medium ${COLORS[status]}`}
-      >
-        {status}
-      </span>
-    </div>
+    <span
+      className={`
+        px-3 py-1 rounded-full text-xs font-semibold
+        ${styles[status]}
+      `}
+    >
+      {status}
+    </span>
   );
 };
+
+
+

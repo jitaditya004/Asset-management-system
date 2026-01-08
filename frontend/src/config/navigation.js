@@ -1,44 +1,95 @@
-// src/config/navigation.js
+import {
+  LayoutDashboard,
+  Boxes,
+  Building2,
+  Users,
+  UserCog,
+  Tags,
+  Layers,
+  Truck,
+  MapPin,
+  ClipboardList,
+  Wrench,
+  MessageSquare
+} from "lucide-react";
 
 export const NAV_ITEMS = [
   {
     label: "Dashboard",
     to: "/",
+    icon: LayoutDashboard,
     roles: ["ADMIN", "ASSET_MANAGER", "USER"]
   },
   {
     label: "Assets",
     to: "/assets",
-    roles: ["ADMIN", "ASSET_MANAGER","USER"]
+    icon: Boxes,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
   },
   {
     label: "Departments",
     to: "/departments",
-    roles: ["ADMIN"]
+    icon: Building2,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
   },
   {
     label: "Users",
     to: "/users",
+    icon: Users,
     roles: ["ADMIN"]
   },
   {
     label: "Designations",
     to: "/designations",
-    roles: ["ADMIN"]
+    icon: UserCog,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
   },
   {
     label: "Category",
     to: "/category",
-    roles: ["ADMIN", "ASSET_MANAGER"]
+    icon: Tags,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
   },
   {
     label: "Subcategory",
     to: "/subcat",
-    roles: ["ADMIN", "ASSET_MANAGER"]
+    icon: Layers,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
   },
   {
     label: "Vendors",
     to: "/vendors",
-    roles: ["ADMIN","ASSET_MANAGER"]
-  }
+    icon: Truck,
+    roles: ["ADMIN", "ASSET_MANAGER","USER"]
+  },
+  {
+    label: "Locations",
+    to: "/locations",
+    icon: MapPin,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
+  },
+  {
+    label: "My Requests",
+    to: "/my-requests",
+    icon: ClipboardList,
+    roles: ["ADMIN", "ASSET_MANAGER","USER"]
+  },
+  {
+    label: "Admin Asset Requests",
+    to: "/adminrequests",
+    icon: ClipboardList,
+    roles: ["ADMIN"]
+  },
+  {
+    label: "Repair Requests",
+    to: "/maintenance/admin",
+    icon: Wrench,
+    roles: ["ADMIN"]
+  },
+  {
+    label: "Suggestions",
+    to: "/suggestion",
+    icon: MessageSquare,
+    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
+  },
 ];

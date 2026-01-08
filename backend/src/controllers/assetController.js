@@ -1,14 +1,15 @@
 // internal modules
 const assetModel = require("../models/assetModel");
+const canUploadAsset=require("../helper/canUpload");
+const supabase=require("../config/supabaseClient");
 
 
-
-async function uploadFile(file, asset_id, public_id) {
-  const bucket = file.mimetype.startsWith("image/")
-    ? "asset-images"
-    : "asset-documents";
-
-  const filePath = `${public_id}/${file.originalname}`;
+/**
+ * Upload single file (image or document)
+ */
+async function uploadAssetFile({ file, asset_id, public_id }) {
+  const bucket = "asset-attachments";
+  const filePath = `${public_id}/${Date.now()}-${file.originalname}`;
 
   const { error } = await supabase.storage
     .from(bucket)
@@ -16,22 +17,29 @@ async function uploadFile(file, asset_id, public_id) {
       contentType: file.mimetype,
     });
 
-  if (error) throw error;
+  if (error) {
+    throw new Error("File upload failed");
+  }
 
   await assetModel.saveAssetFileMeta({
     asset_id,
     public_id,
     bucket,
     file_path: filePath,
-    file_type: file.mimetype.startsWith("image/") ? "image" : "document",
+    file_type: file.mimetype.startsWith("image/")
+      ? "image"
+      : "document",
     mime_type: file.mimetype,
     original_name: file.originalname,
   });
 }
 
+/**
+ * CREATE ASSET
+ */
 exports.create = async (req, res, next) => {
+  console.log(req.body);
   try {
-    // Destructure assigned_to and description as optional (default to null if not provided)
     const {
       asset_name,
       category,
@@ -41,48 +49,53 @@ exports.create = async (req, res, next) => {
       purchase_date,
       purchase_cost,
       vendor,
-      status,
-      location,
-      assigned_to = "NOT ASSIGNED",
       warranty_expiry,
-      description = "NO DESCRIPTION",
-      department
+      status,
+      department,
+
+      // optional
+      assigned_to = "NOT ASSIGNED",
+      description,
+      location,
+      latitude,
+      longitude,
+      region
     } = req.body;
 
-    // Only check required fields
-    if (
-      !asset_name ||
-      !category ||
-      !subcategory ||
-      !serial_number ||
-      !model_number ||
-      !purchase_date ||
-      !purchase_cost ||
-      !vendor ||
-      !status ||
-      !location ||
-      !assigned_to ||
-      !warranty_expiry ||
-      !department
-    ) {
-      return res.status(400).json({ error: "Missing required asset details" });
+    
+
+    /* -------------------- VALIDATION -------------------- */
+    const requiredFields = [
+      asset_name,
+      category,
+      subcategory,
+      serial_number,
+      model_number,
+      purchase_date,
+      purchase_cost,
+      vendor,
+      warranty_expiry,
+      status,
+      department,
+    ];
+
+    if (requiredFields.some(v => v === undefined || v === null || v === "")) {
+      return res.status(400).json({
+        error: "Missing required asset fields",
+      });
     }
 
-    // Check if assigned_to user exists (by public_id)
-    if (assigned_to != "NOT ASSIGNED") {
-      const userModel = require("../models/userModel");
-      const assignedUser = await userModel.getUserByPublicId(assigned_to);
-      if (!assignedUser) {
-        return res
-          .status(400)
-          .json({ error: "assigned_to user does not exist" });
+    /* -------------------- ASSIGNED USER CHECK -------------------- */
+    if (assigned_to !== "NOT ASSIGNED") {
+      const user = await userModel.getUserByPublicId(assigned_to);
+      if (!user) {
+        return res.status(400).json({
+          error: "Assigned user does not exist",
+        });
       }
     }
 
-    // Prepare payload, passing assigned_to and description (possibly as null)
-    const latitude = location?.latitude;
-    const longitude = location?.longitude;
-
+    /* -------------------- PAYLOAD -------------------- */
     const payload = {
       asset_name,
       category,
@@ -92,29 +105,35 @@ exports.create = async (req, res, next) => {
       purchase_date,
       purchase_cost,
       vendor,
-      status,
-      latitude,
-      longitude,
-      assigned_to,
       warranty_expiry,
-      description,
-      department
+      status,
+      department,
+
+      assigned_to,
+      description: description || "NO DESCRIPTION",
+      location,
+      region,
+      latitude: latitude || null,
+      longitude: longitude || null,
     };
 
+    /* -------------------- CREATE ASSET -------------------- */
     const asset = await assetModel.createAsset(payload);
     const { asset_id, public_id } = asset;
 
-    // Handle images
-    if (req.files?.images?.length) {
-      for (const file of req.files.images) {
-        await uploadFile(file, asset_id, public_id);
-      }
-    }
+    /* -------------------- FILE UPLOADS -------------------- */
+    if (req.files) {
+      const allFiles = [
+        ...(req.files.images || []),
+        ...(req.files.documents || []),
+      ];
 
-    // Handle documents
-    if (req.files?.documents?.length) {
-      for (const file of req.files.documents) {
-        await uploadFile(file, asset_id, public_id);
+      for (const file of allFiles) {
+        await uploadAssetFile({
+          file,
+          asset_id,
+          public_id,
+        });
       }
     }
 
@@ -145,13 +164,13 @@ exports.list = async (req, res, next) => {
 
     // ASSET_MANAGER and USER can see assets from their department AND unassigned assets
     // ADMIN sees all assets (no department filter)
-    const userRole = req.user.role.toUpperCase();
-    if (
-      (userRole === "ASSET_MANAGER" || userRole === "USER") &&
-      req.user.department_id && req.query.assigned_to != "NOT ASSIGNED"
-    ) {
-      filters.department_id = req.user.department_id;
-    }
+    // const userRole = req.user.role.toUpperCase();
+    // if (
+    //   (userRole === "ASSET_MANAGER" || userRole === "USER") &&
+    //   req.user.department_id && req.query.assigned_to != null
+    // ) {
+    //   filters.department_id = req.user.department_id;
+    // }
 
     const assets = await assetModel.listAssets(filters);
     res.json(assets);
@@ -167,19 +186,19 @@ exports.getOne = async (req, res, next) => {
 
     // ASSET_MANAGER and USER can access assets from their department AND unassigned assets
     const userRole = req.user.role.toUpperCase();
-    if (userRole === "ASSET_MANAGER" || userRole === "USER") {
-      const assetDepartmentId = asset.asset_department_id;
-      // Allow access if asset is unassigned (null department) OR belongs to user's department
-      // Block if asset belongs to a different department
-      if (
-        assetDepartmentId !== null &&
-        assetDepartmentId !== req.user.department_id
-      ) {
-        return res.status(403).json({
-          error: "Access denied: Asset belongs to a different department",
-        });
-      }
-    }
+    // if (userRole === "ASSET_MANAGER" || userRole === "USER") {
+    //   const assetDepartmentId = asset.asset_department_id;
+    //   // Allow access if asset is unassigned (null department) OR belongs to user's department
+    //   // Block if asset belongs to a different department
+    //   if (
+    //     assetDepartmentId !== null &&
+    //     assetDepartmentId !== req.user.department_id
+    //   ) {
+    //     return res.status(403).json({
+    //       error: "Access denied: Asset belongs to a different department",
+    //     });
+    //   }
+    // }
 
     res.json(asset);
   } catch (err) {
@@ -264,9 +283,9 @@ exports.remove = async (req, res, next) => {
 
 
 //req.user to res.locals.user later
-const db=require("../config/db");  //remove it later
-const canUploadAsset=require("../helper/canUpload");
-const supabase=require("../config/supabaseClient");
+const db=require("../config/db");  
+const safeSupabase = require("../utils/safeSupabase");
+
 exports.uploadDocs=async(req,res)=>{  //make it model later
   try {
       const public_Id = req.params.id;
@@ -300,15 +319,33 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
       // 3️⃣ Upload to Supabase Storage
       const storagePath = `assets/${public_Id}/${Date.now()}-${file.originalname}`;
 
-      const { error } = await supabase.storage
-        .from("asset-attachments")
-        .upload(storagePath, file.buffer, {
-          contentType: file.mimetype
-        });
+      // if (!supabase) {
+      //   return res.status(503).json({
+      //     message: "File storage service unavailable",
+      //   });
+      // }
+
+      // const { error } = await supabase.storage
+      //   .from("asset-attachments")
+      //   .upload(storagePath, file.buffer, {
+      //     contentType: file.mimetype
+      //   });
+
+      // if (error) {
+      //   console.error(error);
+      //   return res.status(500).json({ message: "Upload failed" });
+      // }
+
+      const { data, error } = await safeSupabase(sb =>
+        sb.storage.from("asset-attachments").upload(storagePath, file.buffer, {
+          contentType: file.mimetype,
+        })
+      );
 
       if (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Upload failed" });
+        return res.status(503).json({
+          message: "Storage service unavailable",
+        });
       }
 
       // 4️⃣ Save metadata in DB
@@ -325,23 +362,28 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
         ]
       );
 
-      // 5️⃣ Audit log (VERY GOOD FOR INTERVIEWS)
+      
       await db.query(
         `INSERT INTO audit_log
-         (actor_id, action, target_type, target_id)
-         VALUES ($1, $2, $3, $4)`,
+         (actor_id, action, target_type, target_id,payload)
+         VALUES ($1, $2, $3, $4,$5)`,
         [
           req.user.user_id,
           "UPLOAD_ASSET_DOCUMENT",
           "ASSET",
-          assetId
+          assetId,
+          req.user
         ]
       );
 
       res.json({ message: "File uploaded successfully" });
     }catch(err){
       console.error(err);
-      res.status(500).json({message:"server error"});
+      //503-service unavailable
+       return res.status(503).json({
+          message: "Failed to upload file",
+          details: "Storage service unavailable",
+        });
     }
 }
 
@@ -394,7 +436,12 @@ exports.getDocUrl = async (req, res) => {
     .from("asset-attachments")
     .createSignedUrl(result.rows[0].file_path, 300);
 
-  if (error) throw error;
+      
+    if (error) {
+      return res.status(503).json({
+        message: "Storage service unavailable",
+      });
+    }
 
   res.json({ url: data.signedUrl });  
 };

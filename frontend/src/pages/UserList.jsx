@@ -30,7 +30,6 @@ export default function UsersList() {
 
   async function promoteUser(publicId) {
     if (!window.confirm("Promote this user to ASSET_MANAGER?")) return;
-
     try {
       await API.patch(`/user/${publicId}/promote`);
       loadAll();
@@ -41,7 +40,6 @@ export default function UsersList() {
 
   async function deleteUser(userId) {
     if (!window.confirm("Delete this user permanently?")) return;
-
     try {
       await API.delete(`/user/${userId}`);
       loadAll();
@@ -49,15 +47,17 @@ export default function UsersList() {
       alert(err.response?.data?.message || "Delete failed");
     }
   }
-  console.log(me," ----  ",users);
-  if (loading) return <p className="p-6">Loading users…</p>;
-  if (error) return <p className="p-6 text-red-600">{error}</p>;
+
+  if (loading) return <p className="p-6 text-white/60">Loading users…</p>;
+  if (error) return <p className="p-6 text-red-400">{error}</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold mb-6">User Management</h1>
+    <div className="p-6 space-y-6 text-white">
+      <h1 className="text-2xl font-semibold tracking-wide">
+        User Management
+      </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {users.map((u) => (
           <UserCard
             key={u.public_id}
@@ -75,27 +75,49 @@ export default function UsersList() {
 
 function UserCard({ user, me, onPromote, onDelete }) {
   const isMe = me?.public_id === user.public_id;
-  console.log(isMe);
 
   return (
-    <div className="bg-white border rounded-xl p-5 shadow-sm">
-      <div className="mb-3">
-        <h2 className="font-semibold text-lg">{user.full_name}</h2>
-        <p className="text-xs text-gray-500">{user.public_id}</p>
+    <div
+      className="
+        bg-white/10 backdrop-blur-xl
+        border border-white/10
+        rounded-2xl p-5
+        shadow-lg
+        hover:shadow-xl hover:-translate-y-1
+        transition
+      "
+    >
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="font-semibold text-lg truncate">
+          {user.full_name}
+        </h2>
+        <p className="text-xs text-white/50 truncate">
+          {user.public_id}
+        </p>
       </div>
 
-      <div className="space-y-1 text-sm mb-4">
+      {/* Info */}
+      <div className="space-y-2 text-sm mb-5">
         <Info label="Email" value={user.email} />
         <Info label="Department" value={user.department_name || "—"} />
         <Info label="Designation" value={user.designation_name || "—"} />
-        <Info label="Role" value={user.role_name} />
+        <Info label="Role" value={user.role_name} highlight />
       </div>
 
-      <div className="flex gap-2 justify-end">
+      {/* Actions */}
+      <div className="flex gap-2 justify-end items-center">
         {user.role_name === "USER" && !isMe && (
           <button
             onClick={() => onPromote(user.public_id)}
-            className="text-xs px-3 py-1 bg-blue-600 text-white rounded"
+            className="
+              px-3 py-1 text-xs
+              rounded-lg
+              bg-gradient-to-r from-indigo-600 to-purple-600
+              hover:from-indigo-700 hover:to-purple-700
+              text-white
+              transition
+            "
           >
             Promote
           </button>
@@ -104,25 +126,40 @@ function UserCard({ user, me, onPromote, onDelete }) {
         {!isMe && (
           <button
             onClick={() => onDelete(user.user_id)}
-            className="text-xs px-3 py-1 bg-red-600 text-white rounded"
+            className="
+              px-3 py-1 text-xs
+              rounded-lg
+              bg-red-500/20 text-red-300
+              hover:bg-red-500/30
+              transition
+            "
           >
             Delete
           </button>
         )}
 
         {isMe && (
-          <span className="text-xs text-gray-400 italic">You</span>
+          <span className="text-xs text-green-400 italic">
+            You
+          </span>
         )}
       </div>
     </div>
   );
 }
 
-function Info({ label, value }) {
+
+function Info({ label, value, highlight }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium">{value}</span>
+    <div className="flex justify-between gap-2">
+      <span className="text-white/50">{label}</span>
+      <span
+        className={`font-medium ${
+          highlight ? "text-indigo-300" : "text-white"
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
