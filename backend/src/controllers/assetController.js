@@ -285,9 +285,11 @@ exports.remove = async (req, res, next) => {
 //req.user to res.locals.user later
 const db=require("../config/db");  
 const safeSupabase = require("../utils/safeSupabase");
+const withTransaction=require("../config/withTransaction");
 
 exports.uploadDocs=async(req,res)=>{  //make it model later
   try {
+      await withTransaction(async(client)=>{
       const public_Id = req.params.id;
       const file = req.file;
 
@@ -295,8 +297,8 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      // 1️⃣ Fetch asset department
-      const assetRes = await db.query(
+  
+      const assetRes = await client.query(
         `SELECT department_id,asset_id
          FROM assets
          WHERE public_id = $1`,
@@ -311,12 +313,12 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
 
       const assetDeptId = assetRes.rows[0].department_id;
 
-      // 2️⃣ Authorization check
+
       if (!canUploadAsset(req.user, assetDeptId)) {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      // 3️⃣ Upload to Supabase Storage
+  
       const storagePath = `assets/${public_Id}/${Date.now()}-${file.originalname}`;
 
       // if (!supabase) {
@@ -348,8 +350,7 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
         });
       }
 
-      // 4️⃣ Save metadata in DB
-      await db.query(
+      await client.query(
         `INSERT INTO asset_documents
          (asset_id, document_type, file_path,original_name, uploaded_by)
          VALUES ($1, $2, $3, $4,$5)`,
@@ -363,7 +364,7 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
       );
 
       
-      await db.query(
+      await client.query(
         `INSERT INTO audit_log
          (actor_id, action, target_type, target_id,payload)
          VALUES ($1, $2, $3, $4,$5)`,
@@ -374,7 +375,7 @@ exports.uploadDocs=async(req,res)=>{  //make it model later
           assetId,
           req.user
         ]
-      );
+      );});
 
       res.json({ message: "File uploaded successfully" });
     }catch(err){

@@ -1,82 +1,56 @@
 const db = require("../config/db");
+const withTransaction=require("../config/withTransaction");
 
 /**
  * USER: Report issue
  */
 exports.createMaintenance = async (req, res, next) => {
-  const { asset_id, issue_description } = req.body;
-  const userId = req.user.user_id;
-
-  const client = await db.pool.connect();
-
   try {
-    await client.query("BEGIN");
+    const maintenanceId = await withTransaction(async (client) => {
+      const { asset_id, issue_description } = req.body;
+      const userId = req.user.user_id;
 
-   
-    const existing = await client.query(
-      `
-      SELECT maintenance_id
-      FROM maintenance_requests
-      WHERE asset_id = $1
-        AND status IN ('OPEN', 'IN_PROGRESS')
-      FOR UPDATE
-      `,
-      [asset_id]
-    );
+      const existing = await client.query(
+        `SELECT 1 FROM maintenance_requests
+         WHERE asset_id = $1
+           AND status IN ('OPEN', 'IN_PROGRESS')
+         FOR UPDATE`,
+        [asset_id]
+      );
 
-    if (existing.rowCount > 0) {
-      await client.query("ROLLBACK");
-      return res.status(409).json({
-        message: "This asset already has an active maintenance request",
-      });
-    }
+      if (existing.rowCount > 0) {
+        throw new Error("ACTIVE_MAINTENANCE_EXISTS");
+      }
 
-    
-    const result = await client.query(
-      `
-      INSERT INTO maintenance_requests
-        (asset_id, reported_by, issue_description, status)
-      VALUES ($1, $2, $3, 'OPEN')
-      RETURNING maintenance_id
-      `,
-      [asset_id, userId, issue_description]
-    );
+      const result = await client.query(
+        `INSERT INTO maintenance_requests
+         (asset_id, reported_by, issue_description, status)
+         VALUES ($1, $2, $3, 'OPEN')
+         RETURNING maintenance_id`,
+        [asset_id, userId, issue_description]
+      );
 
-    const maintenanceId = result.rows[0].maintenance_id;
+      await client.query(
+        `UPDATE assets
+         SET status = 'OPEN', maintenance_id = $2
+         WHERE asset_id = $1`,
+        [asset_id, result.rows[0].maintenance_id]
+      );
 
-  
-    await client.query(
-      `
-      UPDATE assets
-      SET status = 'OPEN',
-          maintenance_id = $2
-      WHERE asset_id = $1
-      `,
-      [asset_id, maintenanceId]
-    );
-
-    await client.query("COMMIT");
+      return result.rows[0].maintenance_id;
+    });
 
     res.status(201).json({
-      message: "Maintenance request created",
+      message: "Repair request created",
       maintenance_id: maintenanceId,
     });
   } catch (err) {
-    await client.query("ROLLBACK");
-
-    // 🔥 Handle UNIQUE constraint violation
-    if (err.code === "23505") {
-      return res.status(409).json({
-        message: "This asset already has an active maintenance request",
-      });
+    if (err.message === "ACTIVE_REPAIR_EXISTS") {
+      return res.status(409).json({ message: "Asset already under maintenance" });
     }
-
     next(err);
-  } finally {
-    client.release();
   }
 };
-
 
 
 
@@ -85,6 +59,8 @@ exports.acceptMaintenance = async (req, res, next) => {
   const reviewerId = req.user.user_id;
 
   const client = await db.pool.connect();
+  client.on("error", () => {});
+
 
   try {
     await client.query("BEGIN");
@@ -151,6 +127,8 @@ exports.completeMaintenance = async (req, res, next) => {
   const { id } = req.params;
 
   const client = await db.pool.connect();
+  client.on("error", () => {});
+
 
   try {
     await client.query("BEGIN");
@@ -225,6 +203,8 @@ exports.updateMaintenance = async (req, res, next) => {
   const { status, priority, assigned_vendor } = req.body;
 
   const client = await db.pool.connect();
+  client.on("error", () => {});
+
 
   try {
     await client.query("BEGIN");
@@ -283,6 +263,8 @@ exports.cancelMaintenance = async (req, res, next) => {
   const userId = req.user.user_id;
 
   const client = await db.pool.connect();
+  client.on("error", () => {});
+
 
   try {
     await client.query("BEGIN");
@@ -335,6 +317,8 @@ exports.rejectMaintenance = async (req, res, next) => {
   const adminId = req.user.user_id;
 
   const client = await db.pool.connect();
+  client.on("error", () => {});
+
 
   try {
     await client.query("BEGIN");

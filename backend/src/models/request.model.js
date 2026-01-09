@@ -62,6 +62,8 @@ exports.reviewRequest = async ({
   comment
 }) => {
   const client = await db.pool.connect();
+  client.on("error", () => {});
+
   try {
     await client.query("BEGIN");
 

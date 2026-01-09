@@ -50,6 +50,8 @@ exports.createUser = async (name, email, passwordHash, phone, designationName, d
     const role_id = await getIdByName("roles", "role_name", "USER");
 
     let client=await db.pool.connect();
+    client.on("error", () => {});
+
     try {
         await client.query("BEGIN");
         const result = await client.query(

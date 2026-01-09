@@ -36,6 +36,8 @@ async function getDepartmentIdByName(client,deptName){
 
 exports.createAsset = async (data) => {
   let client=await db.pool.connect();
+  client.on("error", () => {});
+
   try {
     await client.query("BEGIN");
     // --- Get category (id/code) ---
@@ -432,6 +434,8 @@ exports.updateAsset = async (public_id, updateFields = {}) => {
 
 exports.deleteAsset = async (asset_id) => {
   let client=await db.pool.connect();
+  client.on("error", () => {});
+
   try {
     await client.query("BEGIN");
 
