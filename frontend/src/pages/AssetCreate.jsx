@@ -34,8 +34,8 @@ export default function CreateAsset() {
     subcategory_id: ""
   });
 
-  const [images, setImages] = useState([]);
-  const [documents, setDocuments] = useState([]);
+  // const [images, setImages] = useState([]);
+  // const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [departments,setDepartments] = useState([]);
   const [category,setCategory]=useState([]);
@@ -82,8 +82,8 @@ export default function CreateAsset() {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
 
-      images.forEach((img) => fd.append("file", img));
-      documents.forEach((doc) => fd.append("file", doc));
+      // images.forEach((img) => fd.append("file", img));
+      // documents.forEach((doc) => fd.append("file", doc));
 
       await API.post("/assets", fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -258,8 +258,8 @@ export default function CreateAsset() {
         />
 
 
-        <FileInput label="Images" multiple accept="image/*" onChange={setImages} />
-        <FileInput label="Documents (PDF)" multiple accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={setDocuments} />
+        {/* <FileInput label="Images" multiple accept="image/*" onChange={setImages} />
+        <FileInput label="Documents (PDF)" multiple accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={setDocuments} /> */}
 
         {/* LOCATION DETAILS */}
         <div className="col-span-2 space-y-3

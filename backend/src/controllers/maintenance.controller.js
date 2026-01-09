@@ -94,11 +94,12 @@ export const acceptMaintenance = async (req, res, next) => {
       `UPDATE maintenance_requests
        SET status = 'IN_PROGRESS',
            reviewed_by = $2,
-           reviewed_at = NOW()
+           reviewed_at = NOW(),
+           priority= $3
        WHERE maintenance_id = $1
          AND status = 'OPEN'
        RETURNING asset_id`,
-      [id, reviewerId]
+      [id, reviewerId,'MEDIUM']
     );
 
     if (result.rowCount === 0) {
@@ -110,7 +111,7 @@ export const acceptMaintenance = async (req, res, next) => {
     // 2️⃣ Update asset status
     await client.query(
       `UPDATE assets
-       SET status = 'IN_MAINTENANCE'
+       SET status = 'IN_REPAIR'
        WHERE asset_id = $1`,
       [asset_id]
     );
@@ -167,7 +168,7 @@ export const completeMaintenance = async (req, res, next) => {
 
     if (result.rowCount === 0) {
       return res.status(400).json({
-        message: "Maintenance cannot be completed"
+        message: "Repair cannot be completed"
       });
     }
 
@@ -184,7 +185,7 @@ export const completeMaintenance = async (req, res, next) => {
 
     await client.query("COMMIT");
 
-    res.json({ message: "Maintenance completed successfully" });
+    res.json({ message: "Repair completed successfully" });
   } catch (err) {
     await client.query("ROLLBACK");
     next(err);

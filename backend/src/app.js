@@ -21,6 +21,10 @@ const SuggestionRoutes=require("./modules/suggestions/suggestion.route");
 
 const app = express();
 
+
+
+app.set("trust proxy",1);
+
 // console.log("authRoutes:", typeof historyRouter);
 // console.log("assetRoutes:", typeof assetRoutes);
 // console.log("userRoutes:", typeof userRoutes);

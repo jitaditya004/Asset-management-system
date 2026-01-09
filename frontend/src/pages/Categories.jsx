@@ -64,7 +64,7 @@ export default function Categories() {
     }
   };
 
-if (loading) return <p className="p-6 text-white/60">Loading categories...</p>;
+if (loading) return <p className="p-6 text-white/30">Loading categories...</p>;
 
 return (
   <div className="p-6 space-y-6 text-white max-w-6xl mx-auto">

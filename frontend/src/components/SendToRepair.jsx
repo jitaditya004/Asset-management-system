@@ -16,12 +16,12 @@ export default function SendToRepair({ asset, onSuccess }) {
         issue_description: issue || "Sent for repair",
       });
 
-      alert("Asset sent to maintenance");
+      alert("Asset sent to repair");
       await onSuccess();
       setOpen(false);
       setIssue("");
     } catch (err) {
-      alert("Failed to send asset to maintenance");
+      alert("Failed to send asset to repair");
       console.error(err);
     } finally {
       setLoading(false);

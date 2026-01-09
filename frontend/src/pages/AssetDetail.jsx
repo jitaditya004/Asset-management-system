@@ -202,7 +202,7 @@ export default function AssetDetail() {
   };
 
 
-if (loading) return <p className="p-6 text-white/70">Loading asset...</p>;
+if (loading) return <p className="p-6 text-white/30">Loading asset...</p>;
 if (error) return <p className="p-6 text-red-400">{error}</p>;
 if (!asset) return null;
 

@@ -9,10 +9,10 @@ exports.createRequest = async ({
 }) => {
   const res = await db.query(
     `INSERT INTO asset_requests
-     (asset_id, requested_by, requested_department_id, reason)
-     VALUES ($1,$2,$3,$4)
+     (asset_id, requested_by, requested_department_id, reason,status)
+     VALUES ($1,$2,$3,$4,$5)
      RETURNING *`,
-    [asset_id, requested_by, requested_department_id, reason]
+    [asset_id, requested_by, requested_department_id, reason,'PENDING']
   );
   return res.rows[0];
 };

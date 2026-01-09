@@ -1,0 +1,149 @@
+✅ Status enum constraint
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_status
+CHECK (status IN (
+  'ACTIVE',
+  'IN_REPAIR',
+  'IN_MAINTENANCE',
+  'RETIRED',
+  'OPEN'
+));
+
+✅ Purchase cost must be non-negative
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_purchase_cost
+CHECK (purchase_cost IS NULL OR purchase_cost >= 0);
+
+✅ Warranty expiry must be after purchase date
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_warranty_after_purchase
+CHECK (
+  warranty_expiry IS NULL
+  OR purchase_date IS NULL
+  OR warranty_expiry >= purchase_date
+);
+
+✅ Asset name must not be empty string
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_name_not_empty
+CHECK (length(trim(asset_name)) > 0);
+
+✅ Serial number must not be empty (if provided)
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_serial_not_empty
+CHECK (
+  serial_number IS NULL
+  OR length(trim(serial_number)) > 0
+);
+
+2️⃣ maintenance_requests (VERY IMPORTANT)
+✅ Status enum
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_maintenance_status
+CHECK (status IN (
+  'OPEN',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'CANCELLED'
+));
+
+✅ Priority enum
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_maintenance_priority
+CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH'));
+
+✅ Maintenance type enum
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_maintenance_type
+CHECK (maintenance_type IN (
+  'CORRECTIVE',
+  'PREVENTIVE'
+));
+
+✅ COMPLETED must have completed_at
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_completed_requires_timestamp
+CHECK (
+  (status = 'COMPLETED' AND completed_at IS NOT NULL)
+  OR (status <> 'COMPLETED')
+);
+
+✅ completed_at cannot be before created_at
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_completed_after_created
+CHECK (
+  completed_at IS NULL
+  OR completed_at >= created_at
+);
+
+✅ ONE active maintenance per asset (you already did this correctly)
+CREATE UNIQUE INDEX uniq_active_maintenance_per_asset
+ON maintenance_requests (asset_id)
+WHERE status IN ('OPEN', 'IN_PROGRESS');
+
+
+✔ This one is perfect. Do NOT change it.
+
+3️⃣ asset_requests
+✅ Request status enum
+ALTER TABLE asset_requests
+ADD CONSTRAINT chk_asset_request_status
+CHECK (status IN (
+  'PENDING',
+  'APPROVED',
+  'REJECTED'
+));
+
+✅ Rejection must include reason
+ALTER TABLE asset_requests
+ADD CONSTRAINT chk_rejection_requires_reason
+CHECK (
+  (status = 'REJECTED' AND rejection_reason IS NOT NULL)
+  OR status <> 'REJECTED'
+);
+
+✅ Approved / rejected must have reviewer
+ALTER TABLE asset_requests
+ADD CONSTRAINT chk_reviewed_requires_reviewer
+CHECK (
+  (status IN ('APPROVED','REJECTED') AND reviewed_by IS NOT NULL)
+  OR status = 'PENDING'
+);
+
+4️⃣ asset_failures
+✅ resolved requires resolved_date
+ALTER TABLE asset_failures
+ADD CONSTRAINT chk_failure_resolved_date
+CHECK (
+  (resolved = true AND resolved_date IS NOT NULL)
+  OR resolved = false
+);
+
+✅ resolved_date must be after failure_date
+ALTER TABLE asset_failures
+ADD CONSTRAINT chk_resolved_after_failure
+CHECK (
+  resolved_date IS NULL
+  OR resolved_date >= failure_date
+);
+
+5️⃣ users (data sanity, not auth)
+✅ Email format (basic, practical)
+ALTER TABLE users
+ADD CONSTRAINT chk_users_email_format
+CHECK (
+  email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+);
+
+✅ Full name not empty
+ALTER TABLE users
+ADD CONSTRAINT chk_users_full_name_not_empty
+CHECK (length(trim(full_name)) > 0);
+
+6️⃣ telemetry (light but useful)
+✅ metrics must be JSON object (not array/null)
+ALTER TABLE telemetry
+ADD CONSTRAINT chk_metrics_json_object
+CHECK (
+  jsonb_typeof(metrics) = 'object'
+);

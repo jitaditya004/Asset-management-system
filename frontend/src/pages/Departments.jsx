@@ -56,7 +56,7 @@ export default function Departments() {
   };
 
   if (loading) {
-    return <p className="p-6 text-white/70">Loading departments...</p>;
+    return <p className="p-6 text-white/30">Loading departments...</p>;
   }
 
   return (

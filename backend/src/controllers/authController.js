@@ -1,7 +1,8 @@
 // external modules
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+
 // internal modules
 const { createUser, getUserByEmail, updatePasswordByEmail } = require("../models/userModel");
 
@@ -112,11 +113,13 @@ exports.login = async (req, res, next) => {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
     // set the cookie
-    const cookieSecure = process.env.COOKIE_SECURE === "true";
+
+
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie(process.env.COOKIE_NAME, token, {
       httpOnly: true,
-      secure: cookieSecure,
-      sameSite: cookieSecure ? "none" : "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 86400000,
     });
     // return the user
