@@ -5,7 +5,9 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false,
   },
-  max: 5
+  max: 5,
+idleTimeoutMillis: 30000,
+connectionTimeoutMillis: 10000,
 
   
 });
@@ -15,7 +17,7 @@ pool.on("connect", () => {
 });
 
 pool.on("error", (err) => {
-  console.error("PostgreSQL pool error (will retry automatically)", err);
+  console.error("PostgreSQL pool error (will retry automatically)", err.message);
 });
 
 module.exports = {
