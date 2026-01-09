@@ -56,6 +56,10 @@ app.use("/api/history",historyRouter);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/locations",locationRoutes);
 app.use("/api/suggestions",SuggestionRoutes);
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 
 app.use(errorHandler);
 
