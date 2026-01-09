@@ -1,9 +1,9 @@
-import db from "../config/db.js";
+const db = require("../config/db.js");
 
 /**
  * USER: Report issue
  */
-export const createMaintenance = async (req, res, next) => {
+exports.createMaintenance = async (req, res, next) => {
   const { asset_id, issue_description } = req.body;
   const userId = req.user.user_id;
 
@@ -80,7 +80,7 @@ export const createMaintenance = async (req, res, next) => {
 
 
 
-export const acceptMaintenance = async (req, res, next) => {
+exports.acceptMaintenance = async (req, res, next) => {
   const { id } = req.params;
   const reviewerId = req.user.user_id;
 
@@ -129,7 +129,7 @@ export const acceptMaintenance = async (req, res, next) => {
 
 
 
-export const assignTechnician = async (req, res, next) => {
+exports.assignTechnician = async (req, res, next) => {
   const { id } = req.params;
   const { assigned_vendor } = req.body;
 
@@ -147,7 +147,7 @@ export const assignTechnician = async (req, res, next) => {
   }
 };
 
-export const completeMaintenance = async (req, res, next) => {
+exports.completeMaintenance = async (req, res, next) => {
   const { id } = req.params;
 
   const client = await db.pool.connect();
@@ -200,7 +200,7 @@ export const completeMaintenance = async (req, res, next) => {
 /**
  * ADMIN: View queue
  */
-export const getAllMaintenance = async (req, res) => {
+exports.getAllMaintenance = async (req, res) => {
   try{
         const result = await db.query(
         `SELECT m.*, a.asset_name, u.full_name AS reported_by_name, u2.full_name AS reviewed_by_name
@@ -220,7 +220,7 @@ export const getAllMaintenance = async (req, res) => {
 /**
  * ADMIN: Update maintenance
  */
-export const updateMaintenance = async (req, res) => {
+exports.updateMaintenance = async (req, res) => {
   const { id } = req.params;
   const { status, priority, assigned_vendor } = req.body;
 
@@ -255,7 +255,7 @@ export const updateMaintenance = async (req, res) => {
 };
 
 
-export const cancelMaintenance = async (req, res, next) => {
+exports.cancelMaintenance = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.user_id;
 
@@ -306,7 +306,7 @@ export const cancelMaintenance = async (req, res, next) => {
 
 
 
-export const rejectMaintenance = async (req, res, next) => {
+exports.rejectMaintenance = async (req, res, next) => {
   const { id } = req.params;
   const { reason } = req.body; // optional
   const adminId = req.user.user_id;
@@ -358,7 +358,7 @@ export const rejectMaintenance = async (req, res, next) => {
 };
 
 
-export const getMyMaintenanceRequests = async (req, res, next) => {
+exports.getMyMaintenanceRequests = async (req, res, next) => {
   try {
     const userId = req.user.user_id;
 
