@@ -4,7 +4,7 @@ import API from "../api/api";
 const apiUrl = import.meta.env.VITE_API_URL;
 //import dotenv from "dotenv";
 //dotenv.config();
-import {isImage} from "../helper/isImage"
+import {isImage} from "../helper/IsImage"
 import { getAttachUrls,deleteDoc } from "../services/attachments.services";
 import {useAuth} from "../hook/useAuth";
 
