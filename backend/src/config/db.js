@@ -16,7 +16,6 @@ pool.on("connect", () => {
 
 pool.on("error", (err) => {
   console.error("PostgreSQL pool error (will retry automatically)", err);
-  // ❌ DO NOT exit the process
 });
 
 module.exports = {
