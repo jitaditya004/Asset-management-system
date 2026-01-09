@@ -50,7 +50,9 @@ exports.createUser = async (name, email, passwordHash, phone, designationName, d
     const role_id = await getIdByName("roles", "role_name", "USER");
 
     let client=await db.pool.connect();
-    client.on("error", () => {});
+  client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
     try {
         await client.query("BEGIN");

@@ -59,7 +59,9 @@ exports.acceptMaintenance = async (req, res, next) => {
   const reviewerId = req.user.user_id;
 
   const client = await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
 
   try {
@@ -127,7 +129,9 @@ exports.completeMaintenance = async (req, res, next) => {
   const { id } = req.params;
 
   const client = await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
 
   try {
@@ -203,7 +207,9 @@ exports.updateMaintenance = async (req, res, next) => {
   const { status, priority, assigned_vendor } = req.body;
 
   const client = await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
 
   try {
@@ -263,7 +269,9 @@ exports.cancelMaintenance = async (req, res, next) => {
   const userId = req.user.user_id;
 
   const client = await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
 
   try {
@@ -317,7 +325,9 @@ exports.rejectMaintenance = async (req, res, next) => {
   const adminId = req.user.user_id;
 
   const client = await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
 
   try {

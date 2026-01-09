@@ -3,6 +3,9 @@ const db = require("../config/db");
 
 
 async function getCatIdCode(client,catName) {
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
   const catRes = await client.query(
     `SELECT category_id, category_code FROM asset_categories WHERE category_name = $1`,
     [catName]
@@ -14,6 +17,9 @@ async function getCatIdCode(client,catName) {
 }
 
 async function getSubcatIdCode(client,subcatName, catId) {
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
   const subcatRes = await client.query(
     `SELECT subcategory_id, subcategory_code FROM sub_categories WHERE subcategory_name = $1 AND category_id = $2`,
     [subcatName, catId]
@@ -25,6 +31,9 @@ async function getSubcatIdCode(client,subcatName, catId) {
 }
 
 async function getDepartmentIdByName(client,deptName){
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
   const deptRes=await client.query(`SELECT department_id FROM departments WHERE department_name=$1`,[deptName]);
 
   if(deptRes.rowCount===0){
@@ -36,7 +45,9 @@ async function getDepartmentIdByName(client,deptName){
 
 exports.createAsset = async (data) => {
   let client=await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
   try {
     await client.query("BEGIN");
@@ -434,7 +445,9 @@ exports.updateAsset = async (public_id, updateFields = {}) => {
 
 exports.deleteAsset = async (asset_id) => {
   let client=await db.pool.connect();
-  client.on("error", () => {});
+  client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
   try {
     await client.query("BEGIN");

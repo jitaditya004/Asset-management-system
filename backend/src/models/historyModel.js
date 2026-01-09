@@ -25,7 +25,9 @@ exports.updateAssetStatus = async ({
   reason = null,
 }) => {
   const client = await db.pool.connect();
-  client.on("error", () => {});
+  client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
 
   try {

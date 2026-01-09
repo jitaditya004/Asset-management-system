@@ -62,7 +62,9 @@ exports.reviewRequest = async ({
   comment
 }) => {
   const client = await db.pool.connect();
-  client.on("error", () => {});
+    client.on("error", (err) => {
+    console.error("PG client error (auto-handled):", err);
+  });
 
   try {
     await client.query("BEGIN");
