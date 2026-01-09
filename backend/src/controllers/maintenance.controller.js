@@ -137,7 +137,7 @@ exports.assignTechnician = async (req, res, next) => {
     await db.query(
       `UPDATE maintenance_requests
        SET assigned_vendor = $1
-       WHERE maintenance_id = $2`,
+       WHERE maintenance_id = $2 AND status = 'IN_PROGRESS'`,
       [assigned_vendor, id]
     );
 
@@ -220,39 +220,62 @@ exports.getAllMaintenance = async (req, res) => {
 /**
  * ADMIN: Update maintenance
  */
-exports.updateMaintenance = async (req, res) => {
+exports.updateMaintenance = async (req, res, next) => {
   const { id } = req.params;
   const { status, priority, assigned_vendor } = req.body;
 
-    try{
-        await db.query(
-        `UPDATE maintenance_requests
-        SET status = COALESCE($1, status),
-            priority = COALESCE($2, priority),
-            assigned_vendor = COALESCE($3, assigned_vendor),
-            completed_at = CASE WHEN $1 = 'COMPLETED' THEN NOW() ELSE completed_at END
-        WHERE maintenance_id = $4`,
-        [status, priority, assigned_vendor, id]
+  const client = await db.pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1️⃣ Update maintenance
+    const result = await client.query(
+      `
+      UPDATE maintenance_requests
+      SET status = COALESCE($1, status),
+          priority = COALESCE($2, priority),
+          assigned_vendor = COALESCE($3, assigned_vendor),
+          completed_at = CASE 
+            WHEN $1 = 'COMPLETED' THEN NOW() 
+            ELSE completed_at 
+          END
+      WHERE maintenance_id = $4
+      RETURNING asset_id, status
+      `,
+      [status, priority, assigned_vendor, id]
     );
 
+    if (result.rowCount === 0) {
+      throw new Error("Maintenance request not found");
+    }
+
+    const { asset_id } = result.rows[0];
+
+    // 2️⃣ Sync asset lifecycle (ONLY when completed)
     if (status === "COMPLETED") {
-        const asset = await db.query(
-        `SELECT asset_id FROM maintenance_requests WHERE maintenance_id = $1`,
-        [id]
-        );
-
-        await db.query(
-        `UPDATE assets SET status = 'ACTIVE'
-        WHERE asset_id = $1`,
-        [asset.rows[0].asset_id]
-        );
+      await client.query(
+        `
+        UPDATE assets
+        SET status = 'ACTIVE',
+            maintenance_id = NULL
+        WHERE asset_id = $1
+        `,
+        [asset_id]
+      );
     }
 
-    res.json({ message: "Maintenance updated" });
-    }catch(err){
-        console.error(err);
-    }
+    await client.query("COMMIT");
+
+    res.json({ message: "Maintenance updated successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    next(err);
+  } finally {
+    client.release();
+  }
 };
+
 
 
 exports.cancelMaintenance = async (req, res, next) => {

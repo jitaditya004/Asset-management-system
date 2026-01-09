@@ -5,9 +5,9 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false,
   },
-  max: 5,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 7000,
+  max: 5
+
+  
 });
 
 pool.on("connect", () => {
