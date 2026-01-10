@@ -3,20 +3,28 @@ import { Link, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { logout } from "../auth/auth";
 import OnlineStatusPill from "../components/OnlineStatusPill";
-export default function Navbar() {
+
+
+export default function Navbar({onMenu,sidebarOpen}) {
   const nav = useNavigate();
 
   return (
     <nav
       className="
         sticky top-0 z-50
-        backdrop-blur-xl
+        
         bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90
         border-b border-white/10
         shadow-lg
       "
     >
-      <div className="px-6 h-16 flex items-center justify-between">
+      
+      <div className="px-4 h-14 sm:h-16 flex items-center justify-between">
+
+        <div className="flex items-center justify-between gap-3">
+        <button onClick={onMenu} className="md:hidden text-white text-2xl focus:outline-none active:scale-95 transition">
+          {sidebarOpen?"✕":"☰"}
+        </button>
         {/* Logo / Title */}
         <Link
           to="/"
@@ -27,11 +35,13 @@ export default function Navbar() {
             transition
           "
         >
-          Asset Management Portal
+           <span className="hidden sm:inline">Asset Management Portal</span>
+          <span className="sm:hidden">Asset Manager</span>
         </Link>
+        </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-4">
           {/* Online status */}
           <OnlineStatusPill />
 

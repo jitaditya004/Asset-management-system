@@ -7,6 +7,10 @@ export default function AppLayout() {
   const [sidebarWidth, setSidebarWidth] = useState(260);
   const isResizing = useRef(false);
   const sidebarRef = useRef(null);
+  const [sidebarOpen,setSidebarOpen] = useState(false);
+
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
 
   const onMouseDown = () => {
     isResizing.current = true;
@@ -26,7 +30,7 @@ export default function AppLayout() {
     const left = sidebarRef.current.getBoundingClientRect().left;
     const newWidth = e.clientX - left;
 
-    if (newWidth >= 50 && newWidth <= 700) {
+    if (newWidth >= 50 && newWidth <= 900) {
       setSidebarWidth(newWidth);
     }
   };
@@ -48,26 +52,38 @@ export default function AppLayout() {
       <div className="h-screen flex flex-col backdrop-blur-xl bg-black/20">
 
         {/* Top Navbar */}
-        <Navbar />
+        <Navbar onMenu={() => setSidebarOpen(prev=>!prev)} sidebarOpen={sidebarOpen}/>
 
         {/* Body */}
         <div className="flex flex-1 min-h-0 min-w-0">
 
           {/* Sidebar */}
-          <aside
-            ref={sidebarRef}
-            style={{ width: sidebarWidth }}
-            className="
-              relative min-w-0 overflow-hidden
-              bg-slate-900/80 
-              border-r border-white/10
-              transition-[width] duration-75
-            "
-          >
+          {/* Backdrop (mobile only) */}
+            {sidebarOpen && (
+              <div
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              />
+            )}
+
+            <aside
+              ref={sidebarRef}
+              style={{ width: isMobile ? 260 : sidebarWidth }}
+              className={`
+                fixed md:relative z-50
+                md:h-full h-screen overflow-y-auto 
+                bg-slate-900/80
+                border-r border-white/10
+                transition-transform duration-300
+                ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                md:translate-x-0
+              `}
+            >
+
             <Sidebar />
 
             {/* Resize handle */}
-            <div
+            {!isMobile && ( <div
               onMouseDown={onMouseDown}
               className="
                 absolute top-0 right-0 h-full w-1
@@ -76,6 +92,7 @@ export default function AppLayout() {
                 transition-colors
               "
             />
+            )}
           </aside>
 
           {/* Main content */}
@@ -83,8 +100,7 @@ export default function AppLayout() {
             className="
               flex-1 overflow-y-auto p-6
               bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-700
-              text-white
-                      "
+              text-white "
           >
             <Outlet />
           </main>
