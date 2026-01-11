@@ -25,8 +25,8 @@ export default function Sidebar() {
 return (
   <aside
     className="
-      h-full min-w-0 overflow-hidden 
-      grid grid-rows-[auto_1fr_auto]
+      h-full min-w-0 min-h-0 overflow-hidden
+      
       bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
       text-slate-200 shadow-xl 
     "
@@ -37,7 +37,7 @@ return (
     </div>
 
     {/* Navigation (scrollable middle) */}
-    <nav className="overflow-y-auto px-3 py-4 space-y-1">
+    <nav className="overflow-y-auto min-h-0 px-3 py-4 space-y-1 h-[59vh]">
       {NAV_ITEMS
         .filter(item =>
           item.roles
@@ -51,10 +51,10 @@ return (
 
     {/* User Plate (fixed bottom) */}
 <div className="
-  px-4 py-4
+  px-4 py-4 
   border-t border-white/10
   bg-slate-900/80
-  space-y-4
+  space-y-4 
 ">
   {/* User info */}
   <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ return (
     </div>
   </div>
 
-<div className="md:hidden flex flex-col gap-3">
+<div className="md:hidden flex flex-col gap-2">
   {/* Status */}
   <div className="flex justify-start">
     <OnlineStatusPill />
@@ -96,7 +96,7 @@ return (
       nav("/login");
     }}
     className="
-      w-full
+      w-full 
       flex items-center justify-center gap-2
       bg-red-500/20 text-red-300
       border border-red-500/30

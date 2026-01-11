@@ -248,3 +248,136 @@ CREATE INDEX idx_asset_requests_asset ON asset_requests(asset_id);
 
 CREATE INDEX idx_telemetry_asset_ts ON telemetry(asset_id, ts);
 CREATE INDEX idx_audit_actor ON audit_log(actor_id);
+
+
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_status
+CHECK (status IN (
+  'ACTIVE',
+  'IN_REPAIR',
+  'IN_MAINTENANCE',
+  'RETIRED',
+  'OPEN'
+));
+
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_purchase_cost
+CHECK (purchase_cost IS NULL OR purchase_cost >= 0);
+
+
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_warranty_after_purchase
+CHECK (
+  warranty_expiry IS NULL
+  OR purchase_date IS NULL
+  OR warranty_expiry >= purchase_date
+);
+
+
+ALTER TABLE assets
+ADD CONSTRAINT chk_assets_name_not_empty
+CHECK (length(trim(asset_name)) > 0);
+
+
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_maintenance_status
+CHECK (status IN (
+  'OPEN',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'CANCELLED'
+));
+
+
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_maintenance_priority
+CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH'));
+
+
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_maintenance_type
+CHECK (maintenance_type IN (
+  'CORRECTIVE',
+  'PREVENTIVE'
+));
+
+
+
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_completed_requires_timestamp
+CHECK (
+  (status = 'COMPLETED' AND completed_at IS NOT NULL)
+  OR (status <> 'COMPLETED')
+);
+
+
+ALTER TABLE maintenance_requests
+ADD CONSTRAINT chk_completed_after_created
+CHECK (
+  completed_at IS NULL
+  OR completed_at >= created_at
+);
+
+
+CREATE UNIQUE INDEX uniq_active_maintenance_per_asset
+ON maintenance_requests (asset_id)
+WHERE status IN ('OPEN', 'IN_PROGRESS');
+
+
+ALTER TABLE asset_requests
+ADD CONSTRAINT chk_asset_request_status
+CHECK (status IN (
+  'PENDING',
+  'APPROVED',
+  'REJECTED'
+));
+
+
+
+ALTER TABLE asset_requests
+ADD CONSTRAINT chk_rejection_requires_reason
+CHECK (
+  (status = 'REJECTED' AND rejection_reason IS NOT NULL)
+  OR status <> 'REJECTED'
+);
+
+
+
+ALTER TABLE asset_requests
+ADD CONSTRAINT chk_reviewed_requires_reviewer
+CHECK (
+  (status IN ('APPROVED','REJECTED') AND reviewed_by IS NOT NULL)
+  OR status = 'PENDING'
+);
+
+
+
+ALTER TABLE asset_failures
+ADD CONSTRAINT chk_failure_resolved_date
+CHECK (
+  (resolved = true AND resolved_date IS NOT NULL)
+  OR resolved = false
+);
+
+
+ALTER TABLE asset_failures
+ADD CONSTRAINT chk_resolved_after_failure
+CHECK (
+  resolved_date IS NULL
+  OR resolved_date >= failure_date
+);
+
+
+ALTER TABLE users
+ADD CONSTRAINT chk_users_email_format
+CHECK (
+  email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+);
+
+
+ALTER TABLE users
+ADD CONSTRAINT chk_users_full_name_not_empty
+CHECK (length(trim(full_name)) > 0);
+
+
+

@@ -49,7 +49,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
 
       {/* Glass shell */}
-      <div className="h-screen flex flex-col backdrop-blur-xl bg-black/20">
+      <div className="h-screen flex flex-col  bg-black/20">
 
         {/* Top Navbar */}
         <Navbar onMenu={() => setSidebarOpen(prev=>!prev)} sidebarOpen={sidebarOpen}/>
@@ -71,7 +71,7 @@ export default function AppLayout() {
               style={{ width: isMobile ? 260 : sidebarWidth }}
               className={`
                 fixed md:relative z-50
-                md:h-full h-screen overflow-y-auto 
+                md:h-full h-screen min-h-0 overflow-hidden
                 bg-slate-900/80
                 border-r border-white/10
                 transition-transform duration-300
@@ -98,7 +98,7 @@ export default function AppLayout() {
           {/* Main content */}
           <main
             className="
-              flex-1 overflow-y-auto p-6
+              flex-1 overflow-y-auto p-1
               bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-700
               text-white "
           >

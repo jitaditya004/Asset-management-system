@@ -160,7 +160,7 @@ function StatCard({ label, value, danger, warning }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className="
-        bg-white/10 backdrop-blur-xl
+        bg-white/10 
         border border-white/10
         rounded-xl p-4
         shadow-lg
