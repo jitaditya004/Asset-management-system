@@ -37,7 +37,7 @@ return (
     </div>
 
     {/* Navigation (scrollable middle) */}
-    <nav className="overflow-y-auto min-h-0 px-3 py-4 space-y-1 h-[59vh]">
+    <nav className="overflow-y-auto min-h-0 px-3 py-4 space-y-1 h-[45vh]">
       {NAV_ITEMS
         .filter(item =>
           item.roles
