@@ -27,12 +27,16 @@ exports.sendSuggestion = [
     if (!errors.isEmpty())
       return res.status(400).json({ message: "Invalid input" });
 
-    await transporter.sendMail({
-      from: `"Suggestion Box" <${process.env.SMTP_USER}>`,
-      to: process.env.SUGGESTION_TO,
-      subject: "New Suggestion Received",
-      text: req.body.message,
-    });
+    try
+    {  await transporter.sendMail({
+        from: `"Suggestion Box" <${process.env.SMTP_USER}>`,
+        to: process.env.SUGGESTION_TO,
+        subject: "New Suggestion Received",
+        text: req.body.message,
+      });
+    }catch(err){
+      return res.status(500).json({ message: "Email failed" });
+    }
 
     res.json({ message: "Sent" });
   },
