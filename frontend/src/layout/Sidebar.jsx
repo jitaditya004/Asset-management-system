@@ -25,19 +25,21 @@ export default function Sidebar() {
 return (
   <aside
     className="
-      h-full min-w-0 min-h-0 overflow-hidden
-      
+       h-full
+      flex flex-col
+      min-w-0 min-h-0
       bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
-      text-slate-200 shadow-xl 
+      text-slate-200
+      shadow-xl overflow-hidden
     "
   >
     {/* Header */}
-    <div className="px-6 py-5 text-xl font-semibold border-b border-white/10">
+    <div className="px-6 py-5 text-xl font-semibold border-b shrink-0 border-white/10">
       Asset<span className="text-indigo-400">Portal</span>
     </div>
 
     {/* Navigation (scrollable middle) */}
-    <nav className="overflow-y-auto min-h-0 px-3 py-4 space-y-1 h-[50vh]">
+    <nav className="overflow-y-auto min-h-0 px-3 py-4 space-y-1 flex-1">
       {NAV_ITEMS
         .filter(item =>
           item.roles
@@ -51,10 +53,11 @@ return (
 
     {/* User Plate (fixed bottom) */}
 <div className="
-  px-4 py-4 
-  border-t border-white/10
-  bg-slate-900/80
-  space-y-4 
+  px-4 py-4
+        border-t border-white/10
+        bg-slate-900/80
+        space-y-4
+        shrink-0
 ">
   {/* User info */}
   <div className="flex items-center gap-3">
@@ -80,37 +83,33 @@ return (
     </div>
   </div>
 
-<div className="md:hidden flex flex-col gap-2">
-  {/* Status */}
-  <div className="flex justify-start">
-    <OnlineStatusPill />
-  </div>
 
-  {/* Divider */}
-  <div className="h-px bg-white/10" />
+        {/* Mobile actions */}
+        <div className="md:hidden flex flex-col gap-2">
+          <OnlineStatusPill />
 
-  {/* Actions */}
-  <button
-    onClick={async () => {
-      await logout(API);
-      nav("/login");
-    }}
-    className="
-      w-full 
-      flex items-center justify-center gap-2
-      bg-red-500/20 text-red-300
-      border border-red-500/30
-      hover:bg-red-500/30 hover:text-red-200
-      px-4 py-2 rounded-lg
-      text-sm font-medium
-      transition
-      active:scale-95
-    "
-  >
-    ⏻ Logout
-  </button>
-  </div>
-</div>
+          <div className="h-px bg-white/10" />
+
+          <button
+            onClick={async () => {
+              await logout(API);
+              nav("/login");
+            }}
+            className="
+              w-full flex items-center justify-center gap-2
+              bg-red-500/20 text-red-300
+              border border-red-500/30
+              hover:bg-red-500/30 hover:text-red-200
+              px-4 py-2 rounded-lg
+              text-sm font-medium
+              transition
+              active:scale-95
+            "
+          >
+            ⏻ Logout
+          </button>
+        </div>
+      </div>
 
     
   </aside>

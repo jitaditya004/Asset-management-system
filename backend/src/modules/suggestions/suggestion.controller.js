@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 });
 
 exports.validate = [
-  body("message").trim().isLength({ min: 10, max: 1000 }),
+  body("message").trim().isLength({ min: 10, max: 10000 }),
 ];
 
 exports.sendSuggestion = [

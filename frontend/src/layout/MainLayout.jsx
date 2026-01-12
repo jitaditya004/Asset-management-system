@@ -9,8 +9,16 @@ export default function AppLayout() {
   const sidebarRef = useRef(null);
   const [sidebarOpen,setSidebarOpen] = useState(false);
 
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+const [isMobile, setIsMobile] = useState(
+  window.matchMedia("(max-width: 768px)").matches
+);
 
+useEffect(() => {
+  const mq = window.matchMedia("(max-width: 768px)");
+  const handler = e => setIsMobile(e.matches);
+  mq.addEventListener("change", handler);
+  return () => mq.removeEventListener("change", handler);
+}, []);
 
   const onMouseDown = () => {
     isResizing.current = true;
@@ -48,14 +56,15 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600">
 
-      {/* Glass shell */}
-      <div className="h-screen flex flex-col  bg-black/20">
+   
+      <div className="min-h-0 h-screen flex flex-col  bg-black/20">
 
         {/* Top Navbar */}
         <Navbar onMenu={() => setSidebarOpen(prev=>!prev)} sidebarOpen={sidebarOpen}/>
 
         {/* Body */}
-        <div className="flex flex-1 min-h-0 min-w-0">
+        <div className="flex flex-1 min-h-0 min-w-0 pt-14 sm:pt-16">
+
 
           {/* Sidebar */}
           {/* Backdrop (mobile only) */}
@@ -70,8 +79,9 @@ export default function AppLayout() {
               ref={sidebarRef}
               style={{ width: isMobile ? 260 : sidebarWidth }}
               className={`
-                fixed md:relative z-50
-                md:h-full h-screen min-h-0 overflow-hidden
+                md:relative z-50
+                h-full 
+                min-h-0 overflow-hidden
                 bg-slate-900/80
                 border-r border-white/10
                 transition-transform duration-300

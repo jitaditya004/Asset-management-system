@@ -11,8 +11,9 @@ export default function Navbar({onMenu,sidebarOpen}) {
   return (
     <nav
       className="
-        sticky top-0 z-50
-        
+        fixed top-0 left-0 right-0
+        h-14 sm:h-16
+        z-50
         bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90
         border-b border-white/10
         shadow-lg
