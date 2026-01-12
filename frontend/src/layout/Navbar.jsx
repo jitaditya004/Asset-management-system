@@ -54,7 +54,7 @@ export default function Navbar({onMenu,sidebarOpen}) {
             }}
             className="
               flex items-center gap-2
-              bg-red-500/20 text-red-300
+              bg-red-500/20 text-red-300 
               border border-red-500/30
               hover:bg-red-500/30 hover:text-red-200
               px-4 py-2 rounded-lg

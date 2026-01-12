@@ -79,14 +79,18 @@ useEffect(() => {
               ref={sidebarRef}
               style={{ width: isMobile ? 260 : sidebarWidth }}
               className={`
-                md:relative z-50
-                h-full 
-                min-h-0 overflow-hidden
-                bg-slate-900/80
-                border-r border-white/10
-                transition-transform duration-300
-                ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-                md:translate-x-0
+                z-50
+              bg-slate-900/80
+              border-r border-white/10
+              overflow-hidden
+              transition-transform duration-300
+
+              /* MOBILE */
+              fixed inset-y-0 left-0
+              ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+
+              /* DESKTOP */
+              md:relative md:translate-x-0 md:h-full
               `}
             >
 
