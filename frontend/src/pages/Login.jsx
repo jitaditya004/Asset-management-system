@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import API from "../api/api";
 import { Link, useNavigate } from "react-router-dom";
+import {useAuth} from "../hook/useAuth";
 
 export default function Login() {
   const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
+  const {reloadUser} = useAuth();
 
   
 
@@ -15,6 +17,7 @@ export default function Login() {
     setLoading(true);
     try {
       await API.post("/auth/login", { email, password });
+      await reloadUser();
       nav("/");
     } catch (err) {
       alert(err?.response?.data?.message || "Login failed");

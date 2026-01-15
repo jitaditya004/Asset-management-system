@@ -1,22 +1,17 @@
-import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import API from "../api/api";
+import { useAuth } from "../hook/useAuth";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function ProtectedRoute({ children }) {
-  const [loading, setLoading] = useState(true);
-  const [ok, setOk] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    API.get("/user/me").then(() => {
-      setOk(true);
-      setLoading(false);
-    }).catch(() => {
-      setOk(false);
-      setLoading(false);
-    });
-  }, []);
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
-  if (loading) return <LoadingScreen/>
-  return ok ? children : <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }
