@@ -138,11 +138,18 @@ exports.login = async (req, res, next) => {
 };
 // logout a user
 exports.logout = (req, res) => {
-  // clear the cookie
-  res.clearCookie(process.env.COOKIE_NAME, { path: "/" });
-  // return the message
+  const isProd = process.env.NODE_ENV === "production";
+
+  res.clearCookie(process.env.COOKIE_NAME, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+  });
+
   res.json({ message: "Logout successful" });
 };
+
 
 // Forgot password - generates reset token and returns it directly
 exports.forgotPassword = async (req, res, next) => {

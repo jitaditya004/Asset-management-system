@@ -48,7 +48,7 @@ useEffect(() => {
     document.addEventListener("mouseup", onMouseUp);
 
     return () => {
-      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mousemove", onMouseMove); //remove listeners on unmount
       document.removeEventListener("mouseup", onMouseUp);
     };
   }, []);
