@@ -35,6 +35,7 @@ exports.sendSuggestion = [
         text: req.body.message,
       });
     }catch(err){
+      console.error("MAIL ERROR:", err);
       return res.status(500).json({ message: "Email failed" });
     }
 
