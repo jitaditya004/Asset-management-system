@@ -9,6 +9,7 @@ export default function Login() {
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
   const { reloadUser } = useAuth();
+  const [error, setError] = useState("");
 
   const submit = async (e) => {
     e.preventDefault();
@@ -18,7 +19,8 @@ export default function Login() {
       await reloadUser();
       nav("/");
     } catch (err) {
-      alert(err?.response?.data?.message || "Login failed");
+      // alert(err?.response?.data?.message || "Login failed");
+      setError(err?.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -71,6 +73,20 @@ export default function Login() {
             Sign in to continue
           </p>
         </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="
+            mb-3
+            text-red-400 text-sm
+            bg-red-500/10
+            border border-red-500/20
+            rounded-lg
+            px-3 py-2
+          ">
+            {error}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={submit} className="space-y-4">
