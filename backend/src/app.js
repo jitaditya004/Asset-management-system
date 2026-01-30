@@ -23,7 +23,7 @@ const app = express();
 
 
 
-app.set("trust proxy",1);
+// app.set("trust proxy",1);
 
 // console.log("authRoutes:", typeof historyRouter);
 // console.log("assetRoutes:", typeof assetRoutes);

@@ -86,10 +86,10 @@ export const NAV_ITEMS = [
     icon: Wrench,
     roles: ["ADMIN"]
   },
-  {
-    label: "Suggestions",
-    to: "/suggestion",
-    icon: MessageSquare,
-    roles: ["ADMIN", "ASSET_MANAGER", "USER"]
-  },
+  // {
+  //   label: "Suggestions",
+  //   to: "/suggestion",
+  //   icon: MessageSquare,
+  //   roles: ["ADMIN", "ASSET_MANAGER", "USER"]
+  // },
 ];

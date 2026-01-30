@@ -1,7 +1,6 @@
-
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import API from "../api/api";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getAllDept } from "../services/department.service";
 import { getAllDesig } from "../services/designation.services";
 import SelectField from "../components/form/SelectField";
@@ -19,8 +18,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [departments,setDepartments]=useState([]);
-  const [designations,setDesignations]=useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [designations, setDesignations] = useState([]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,10 +38,7 @@ export default function Register() {
     try {
       setLoading(true);
 
-
-      await API.post(
-        "/auth/register",form,{withCredentials: true},
-      );
+      await API.post("/auth/register", form, { withCredentials: true });
 
       setSuccess("Account created successfully. You can now log in.");
       setForm({
@@ -60,30 +56,32 @@ export default function Register() {
     }
   };
 
-
-  useEffect(()=>{
+  useEffect(() => {
     async function loadMeta() {
-      try{
-        const [deptRes,desigRes]=await Promise.all([getAllDept(),getAllDesig()]);
+      try {
+        const [deptRes, desigRes] = await Promise.all([
+          getAllDept(),
+          getAllDesig(),
+        ]);
 
         setDepartments(deptRes.data);
         setDesignations(desigRes.data);
-      }catch(err){
+      } catch (err) {
         setError("Server Down");
         console.error(err);
       }
     }
 
     loadMeta();
-  },[]);
-
-  
+  }, []);
 
   return (
-    <div className="
-      min-h-screen flex items-center justify-center
-      bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600
-    ">
+    <div
+      className="
+        min-h-screen flex items-center justify-center
+        bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
+      "
+    >
       <form
         onSubmit={handleSubmit}
         className="
@@ -182,8 +180,8 @@ export default function Register() {
           disabled={loading}
           className="
             w-full mt-4
-            bg-gradient-to-r from-indigo-500 to-purple-500
-            hover:from-indigo-600 hover:to-purple-600
+            bg-gradient-to-r from-slate-700 to-slate-600
+            hover:from-slate-600 hover:to-slate-500
             text-white py-2.5 rounded-lg
             font-medium
             shadow-lg hover:shadow-xl
@@ -199,7 +197,7 @@ export default function Register() {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-indigo-300 hover:text-indigo-200 font-medium transition"
+            className="text-slate-300 hover:text-slate-200 font-medium transition"
           >
             Login
           </Link>
@@ -207,7 +205,6 @@ export default function Register() {
       </form>
     </div>
   );
-
 }
 
 function Input({ label, ...props }) {
@@ -227,11 +224,10 @@ function Input({ label, ...props }) {
           text-white
           placeholder:text-white/40
           focus:outline-none
-          focus:ring-2 focus:ring-indigo-400
+          focus:ring-2 focus:ring-slate-400
           transition
         "
       />
     </div>
   );
 }
-

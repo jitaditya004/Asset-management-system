@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import API from "../api/api";
 import { Link, useNavigate } from "react-router-dom";
-import {useAuth} from "../hook/useAuth";
+import { useAuth } from "../hook/useAuth";
 
 export default function Login() {
   const [email, setemail] = useState("");
   const [password, setPassword] = useState("");
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
-  const {reloadUser} = useAuth();
-
-  
+  const { reloadUser } = useAuth();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -27,45 +25,52 @@ export default function Login() {
   };
 
   return (
-    <div className="
-      min-h-screen flex flex-col items-center justify-center
-      bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 gap-2
-    ">
+    <div
+      className="
+        min-h-screen flex flex-col items-center justify-center
+        bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 gap-2
+      "
+    >
       {/* Card */}
-      <div className="
-              w-full max-w-md
-              bg-white/10 backdrop-blur-xl
-              border border-white/20
-              rounded-2xl
-              shadow-2xl
-              p-8
-              text-white
-              animate-fadeIn
-            ">
-              {/* Title */}
-              <div className="flex flex-col items-center gap-3">
-        <span className="
-          px-3 py-1 text-xs font-semibold tracking-wide
-          rounded-full
-          bg-white/10 border border-white/20
-          text-white/80
-        ">
-          ASSET MANAGEMENT PORTAL
-        </span>
+      <div
+        className="
+          w-full max-w-md
+          bg-white/10 backdrop-blur-xl
+          border border-white/20
+          rounded-2xl
+          shadow-2xl
+          p-8
+          text-white
+          animate-fadeIn
+        "
+      >
+        {/* Title */}
+        <div className="flex flex-col items-center gap-3">
+          <span
+            className="
+              px-3 py-1 text-xs font-semibold tracking-wide
+              rounded-full
+              bg-white/10 border border-white/20
+              text-white/80
+            "
+          >
+            ASSET MANAGEMENT PORTAL
+          </span>
 
-        <h2 className="
-          text-4xl font-extrabold
-          bg-gradient-to-r from-indigo-200 to-purple-300
-          bg-clip-text text-transparent
-        ">
-          Welcome Back
-        </h2>
+          <h2
+            className="
+              text-4xl font-extrabold
+              bg-gradient-to-r from-slate-200 to-slate-400
+              bg-clip-text text-transparent
+            "
+          >
+            Welcome Back
+          </h2>
 
-        <p className="text-white/80 text-sm mb-3">
-          Sign in to continue
-        </p>
-      </div>
-
+          <p className="text-white/80 text-sm mb-3">
+            Sign in to continue
+          </p>
+        </div>
 
         {/* Form */}
         <form onSubmit={submit} className="space-y-4">
@@ -79,7 +84,7 @@ export default function Login() {
               text-white
               placeholder:text-white/40
               focus:outline-none
-              focus:ring-2 focus:ring-indigo-400
+              focus:ring-2 focus:ring-slate-400
               transition
             "
             placeholder="Email"
@@ -99,7 +104,7 @@ export default function Login() {
               text-white
               placeholder:text-white/40
               focus:outline-none
-              focus:ring-2 focus:ring-indigo-400
+              focus:ring-2 focus:ring-slate-400
               transition
             "
             placeholder="Password"
@@ -112,8 +117,8 @@ export default function Login() {
             disabled={loading}
             className="
               w-full
-              bg-gradient-to-r from-indigo-500 to-purple-500
-              hover:from-indigo-600 hover:to-purple-600
+              bg-gradient-to-r from-slate-700 to-slate-600
+              hover:from-slate-600 hover:to-slate-500
               text-white
               py-2.5
               rounded-lg
@@ -133,14 +138,12 @@ export default function Login() {
           Don’t have an account?{" "}
           <Link
             to="/signup"
-            className="text-indigo-300 hover:text-indigo-200 font-medium transition"
+            className="text-slate-300 hover:text-slate-200 font-medium transition"
           >
             Sign up
           </Link>
         </div>
-
       </div>
     </div>
   );
-
 }
